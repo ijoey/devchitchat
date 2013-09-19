@@ -1,0 +1,60 @@
+<% if(request.user){%>
+	<script>
+	var member = <%- JSON.stringify(request.user)%>;
+	</script>
+	<h1><%- request.user.profile.username%></h1>
+	<form method="get" action="/logout">
+		<fieldset>
+			<button type="submit">Sign out</button>
+		</fieldset>
+	</form>
+	<div id="messagesView" class="centered content view">
+		<ol class="discussion">
+			<li class="other">
+				<div class="avatar">
+					<img data-src="{{from.profile_image_url}}" />
+				</div>
+				<div class="message">
+					<article>{{{text}}}</article>
+					<time datetime="{{time}}">{{time}}</time>
+				</div>
+			</li>
+		</ol>
+		<ol class="previous discussion">
+			<% for(var key in model){%>
+				<li<%- request.user.profile.username === model[key].author.username ? ' class="self"' : ""%>>
+					<div class="avatar">
+						<img src="<%- model[key].author.profile_image_url%>" />
+					</div>
+					<div class="message">
+						<article><%- model[key].message%></article>
+						<time datetime="<%- new Date(model[key].time) %>"><%- new Date(model[key].time)%></time>
+					</div>
+				</li>
+			<%}%>
+		</ol>
+	</div>
+	<div id="comment" class="comment">
+		<form>
+			<fieldset>
+				<legend></legend>
+				<textarea name="message"></textarea>
+				<button type="submit">Send</button>
+			</fieldset>
+		</form>
+	</div>
+	<div id="rosterView" class="right nav view">
+		<ul>
+			<li>
+				<img data-src="{{profile_image_url}}" />
+				<label>{{username}}</label>
+			</li>
+		</ul>
+	</div>
+	<%}else{%>
+	<form  method="get" action="/auth/twitter">
+		<fieldset>
+			<button type="submit" class="twitter">Sign in with Twitter</button>
+		</fieldset>
+	</form>	
+<%}%>
