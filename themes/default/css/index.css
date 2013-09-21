@@ -173,12 +173,11 @@ body {
 	border-top-left-radius: 10px;
 }
 .discussion .avatar{
-	position: absolute;
-	top: 0;
-	left: 0;
+	width: 48px;
 }
 .discussion .self .avatar{
 	right: 0;
+	float: right;
 }
 .discussion .message{
 	margin-left: 65px;
@@ -201,6 +200,10 @@ body {
 }
 .discussion .message:last-child{
 	border-bottom: none;
+}
+.discussion li li{
+	border: none;
+	border-radius: 0;
 }
 .comment{
 	position: fixed;
