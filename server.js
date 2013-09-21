@@ -1,4 +1,15 @@
 var port = process.env.PORT;
+var config = {};
+config.twitter = {
+	key: process.env.TWITTER_CONSUMER_KEY
+	, secret: process.env.TWITTER_CONSUMER_SECRET
+	, callback: process.env.TWITTER_CALLBACK_URL
+};
+config.cookie = {
+	secret: process.env.COOKIE_SECRET
+	, key: process.env.COOKIE_KEY
+};
+
 var runAsUser = null;
 var express = require('express');
 var http = require('http');
@@ -46,7 +57,7 @@ app.configure(function(){
 	app.use(express.methodOverride());
 	app.use(express.cookieParser());
 	app.use(express.bodyParser());
-	app.use(express.cookieSession({ key: 'chatter', secret: 'needstobeconfiguredsomewhereelse....'}));
+	app.use(express.cookieSession({ key: config.cookie.key, secret: config.cookie.secret}));
 	app.use(passport.initialize());
 	app.use(passport.session());
 	passport.serializeUser(function(member, done) {
@@ -62,9 +73,9 @@ app.configure(function(){
 		});
 	});
 	passport.use(new TwitterStrategy({
-		consumerKey: "iAa4kETEs3JrrqgZz5xd7w"
-		, consumerSecret: "cVDFaPi4OtmIvNxK0KJCqGL3hz3IoPMF4hqVW6Qck"
-		, callbackURL: "http://127.0.0.1:3000/auth/twitter/callback"
+		consumerKey: config.twitter.key
+		, consumerSecret: config.twitter.secret
+		, callbackURL: config.twitter.callback
 		, passReqToCallback: true
 	  }
 	  , function(request, token, tokenSecret, profile, done) {
