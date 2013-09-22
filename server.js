@@ -89,7 +89,6 @@ app.configure(function(){
 				  return done(null, member);
 			  }
 			  var member = {"token":token, "profile":profile};
-			  console.log('creating an account:', token, profile);
 				members.save(null, member, function(err, key){
 					if(err) return done(err);
 					members.find({token: member.token}, function(err, member){
@@ -100,7 +99,6 @@ app.configure(function(){
 	  }
 	));
 	app.use(function(req, res, next){
-		console.log(req.url);
 		next();
 	});
 	app.get('/logout', function(req, res){
@@ -163,7 +161,6 @@ io.sockets.on('connection', function (socket) {
 		console.log('couldnt find ', nick);
 		members.find({"profile.username": nick}, function(err, member) {
 			if(err){
-				console.log('error finding nick: ', err, nick);
 				return fn(false);
 			}
 			member = (function(){for(var key in member) return member[key];})();
