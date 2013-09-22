@@ -63,14 +63,16 @@ app.configure(function(){
 	passport.serializeUser(function(member, done) {
 		// nStore sets it's id on an object as a property on that object. So
 		// doing a for in to get the key, in order to get the rest of the object.
-		
+		console.log('serializing -> ', member);
 		// TODO: Make sure this is secured/signed/whatever so the hacking vectors are reduced.
 		return done(null, member.token);
 	});
 	passport.deserializeUser(function(token, done) {
+		console.log('deserializeUser -> ', token);
 		members.find({token: token}, function(err, member) {
 			for(var key in member) return done(err, member[key]);
 		});
+		return done("Didn't find you", null);
 	});
 	passport.use(new TwitterStrategy({
 		consumerKey: config.twitter.key
