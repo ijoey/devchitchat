@@ -24,8 +24,8 @@ var Represent = require("./represent");
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var nicknames = {};
-var nStore = require('nstore');
-nStore = nStore.extend(require('nstore/query')());
+var nStore = require('./inmemoryrepo');//require('nstore');
+//nStore = nStore.extend(require('nstore/query')());
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
 var members = nStore.new('data/members.db', function(){
@@ -39,6 +39,18 @@ var messages = nStore.new('data/messages.db', function(){
 // node app.js port:3001 as:joeyguerra
 // as is the user name to run the process as in UNIX. Doesn't really work in Windows.
 
+var hubot = {"1": 
+	{"token":"48d64e93-a7e6-4bc8-8ea8-2d6c702bb9ff"
+	, "profile":{"provider":"local", "id":1, "username":"Hubot","displayName":"Hubot"
+	, "_json":{"profile_image_url":"public/images/hubot.png"}}}
+};
+
+members.find({token: hubot[1].token}, function(err, doc){
+	if(Object.keys(doc).length === 0){
+		console.log('finding hubot->', err, hubot[1]);
+		members.save(null, hubot[1]);
+	}
+});
 process.argv.forEach(function(value, fileName, args){
 	if(/as:/.test(value)) runAsUser = /as\:([a-zA-Z-]+)/.exec(value)[1];
 	if(/port:/.test(value)) port = /port:(\d+)/.exec(value)[1];
@@ -67,12 +79,14 @@ app.configure(function(){
 		// nStore sets it's id on an object as a property on that object. So
 		// doing a for in to get the key, in order to get the rest of the object.
 		// TODO: Make sure this is secured/signed/whatever so the hacking vectors are reduced.
+		console.log('serizing->', member);
 		done(null, member.token);
 	});
 	passport.deserializeUser(function(token, done) {
 		console.log('deserializeUser -> ', token);
 		members.find({token: token}, function(err, member) {
-			for(var key in member) done(err, member[key]);
+			for(var key in member) return done(err, member[key]);
+			done(null, null);
 		});
 	});
 	passport.use(new TwitterStrategy({
@@ -82,7 +96,7 @@ app.configure(function(){
 		, passReqToCallback: true
 	  }
 	  , function(request, token, tokenSecret, profile, done) {
-		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
+		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra', 'Hubot'];
 		  if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
 		  members.find({"token":token}, function(err, results){
 				if(err) return done(err);
@@ -128,18 +142,19 @@ var nicknames = {};
 io.configure(function(){
 	io.set('log level', 2);
 	io.set('authorization', function(handshakeData, callback){
-		var cookieParser = express.cookieParser('needstobeconfiguredsomewhereelse....');
+		var cookieParser = express.cookieParser(config.cookie.secret);
 		var req = {headers: handshakeData.headers, cookies: handshakeData.headers.cookies, signedCookies: {}, secret: ''};
 		var cookie = cookieParser(req, {}, function(req, res, err){});
 		if(!req.signedCookies[config.cookie.key] && handshakeData.query.token){
 			req.signedCookies[config.cookie.key] = {passport: {user: handshakeData.query.token}};
 		} 
 		members.find({"token":req.signedCookies[config.cookie.key].passport.user}, function(err, member){
+			console.log('auth->', err, member);
 			if(err) return callback("Unauthorized", false);
 			member = (function(){for(var key in member) return member[key];})();
 			if(!member) return callback("Unauthorized", false);
 			nicknames[member.profile.username] = {username: member.profile.username, profile_image_url: member.profile._json.profile_image_url};
-			callback(null, true);			
+			callback(null, true);	
 		});
 	});
 });
