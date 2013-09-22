@@ -82,7 +82,6 @@ app.configure(function(){
 	  }
 	  , function(request, token, tokenSecret, profile, done) {
 		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
-		  return done("nope", profile);
 		  if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
 		  members.find({"token":token}, function(err, results){
 			  console.log('finding members->', err, results);
