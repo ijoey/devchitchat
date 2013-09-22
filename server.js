@@ -81,9 +81,10 @@ app.configure(function(){
 		, passReqToCallback: true
 	  }
 	  , function(request, token, tokenSecret, profile, done) {
-		  //var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
-		  //if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
-		  members.find({"token":token}, function(err, results){
+		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
+		  return done("nope", null);
+		  if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
+		  /*members.find({"token":token}, function(err, results){
 			  if(err) return done(err);
 			  var foundMemberAndFinish = Object.keys(results).length > 0;
 			  if(foundMemberAndFinish){
@@ -97,7 +98,7 @@ app.configure(function(){
 						for(var key in member) return done(null, member[key]);
 					});
 				});
-		  });
+		  });*/
 	  }
 	));
 	app.use(function(req, res, next){
