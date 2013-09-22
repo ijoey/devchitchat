@@ -81,8 +81,8 @@ app.configure(function(){
 		, passReqToCallback: true
 	  }
 	  , function(request, token, tokenSecret, profile, done) {
-		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
-		  if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
+		  //var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
+		  //if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
 		  members.find({"token":token}, function(err, results){
 			  if(err) return done(err);
 			  var foundMemberAndFinish = Object.keys(results).length > 0;
