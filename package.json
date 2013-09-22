@@ -7,6 +7,7 @@
 	  , "ejs":"*"
 	  , "socket.io":"*"
 	  , "nstore":"*"
+	  , "passport":"*"
 	  , "passport-twitter":"*"
   	}
 }
