@@ -1,5 +1,8 @@
 var port = process.env.PORT;
 var config = {};
+if(process.env.TWITTER_CONSUMER_KEY === undefined){
+	process.env = require('./env.js');
+}
 config.twitter = {
 	key: process.env.TWITTER_CONSUMER_KEY
 	, secret: process.env.TWITTER_CONSUMER_SECRET
@@ -63,16 +66,14 @@ app.configure(function(){
 	passport.serializeUser(function(member, done) {
 		// nStore sets it's id on an object as a property on that object. So
 		// doing a for in to get the key, in order to get the rest of the object.
-		console.log('serializing -> ', member);
 		// TODO: Make sure this is secured/signed/whatever so the hacking vectors are reduced.
-		return done(null, member.token);
+		done(null, member.token);
 	});
 	passport.deserializeUser(function(token, done) {
 		console.log('deserializeUser -> ', token);
 		members.find({token: token}, function(err, member) {
-			for(var key in member) return done(err, member[key]);
+			for(var key in member) done(err, member[key]);
 		});
-		return done("Didn't find you", null);
 	});
 	passport.use(new TwitterStrategy({
 		consumerKey: config.twitter.key
@@ -84,14 +85,14 @@ app.configure(function(){
 		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
 		  if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
 		  members.find({"token":token}, function(err, results){
-			  if(err) return done(err);
-			  var foundMemberAndFinish = Object.keys(results).length > 0;
-			  if(foundMemberAndFinish){
-				  var member = (function(){ for(var key in results){return results[key];}})();
-				  return done(null, member);
-			  }
-			  console.log('member not found. going to save->', token);
-			  var member = {"token":token, "profile":profile};
+				if(err) return done(err);
+				var foundMemberAndFinish = Object.keys(results).length > 0;
+				if(foundMemberAndFinish){
+					var member = (function(){ for(var key in results){return results[key];}})();
+					return done(null, member);
+				}
+				console.log('member not found. going to save->', token);
+				var member = {"token":token, "profile":profile};
 				members.save(null, member, function(err, key){
 					console.log('saving->', err);
 					if(err) return done(err);
