@@ -127,10 +127,10 @@ io.configure(function(){
 		var cookieParser = express.cookieParser('needstobeconfiguredsomewhereelse....');
 		var req = {headers: handshakeData.headers, cookies: handshakeData.headers.cookies, signedCookies: {}, secret: ''};
 		var cookie = cookieParser(req, {}, function(req, res, err){});
-		if(!req.signedCookies.chatter && handshakeData.query.token){
-			req.signedCookies.chatter = {passport: {user: handshakeData.query.token}};
+		if(!req.signedCookies[config.cookie.key] && handshakeData.query.token){
+			req.signedCookies[config.cookie.key] = {passport: {user: handshakeData.query.token}};
 		} 
-		members.find({"token":req.signedCookies.chatter.passport.user}, function(err, member){
+		members.find({"token":req.signedCookies[config.cookie.key].passport.user}, function(err, member){
 			if(err) return callback("Unauthorized", false);
 			member = (function(){for(var key in member) return member[key];})();
 			if(!member) return callback("Unauthorized", false);

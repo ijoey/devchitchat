@@ -3,7 +3,7 @@ var nStore = require('nstore');
 nStore = nStore.extend(require('nstore/query')());
 module.exports = function index(app){
 	var self = new Resource();
-	self.title = "Chatter.";
+	self.title = "Dev Chit Chat.";
 	self.js.push("index");
 	self.css.push("index");
 	function byDate(a, b){
