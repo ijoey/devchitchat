@@ -84,17 +84,19 @@ app.configure(function(){
 		  var allowedTwitterUsers = ['ijoeyguerra', 'joseguerra'];
 		  if(allowedTwitterUsers.indexOf(profile.username) === -1) return done(null, null);
 		  members.find({"token":token}, function(err, results){
-			  console.log('finding members->', err, results);
 			  if(err) return done(err);
 			  var foundMemberAndFinish = Object.keys(results).length > 0;
 			  if(foundMemberAndFinish){
 				  var member = (function(){ for(var key in results){return results[key];}})();
 				  return done(null, member);
 			  }
+			  console.log('member not found. going to save->', token);
 			  var member = {"token":token, "profile":profile};
 				members.save(null, member, function(err, key){
+					console.log('saving->', err);
 					if(err) return done(err);
 					members.find({token: member.token}, function(err, member){
+						console.log('finding member again->', err, member);
 						for(var key in member) return done(null, member[key]);
 					});
 				});
