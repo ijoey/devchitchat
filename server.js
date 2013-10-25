@@ -40,7 +40,7 @@ process.argv.forEach(function(value, fileName, args){
 	if(/as:/.test(value)) runAsUser = /as\:([a-zA-Z-]+)/.exec(value)[1];
 	if(/port:/.test(value)) port = /port:(\d+)/.exec(value)[1];
 });
-if(!port) port = 3000;
+if(!port) port = 5000;
 app.response.represent = function(view, resource, model, next){
 	resource.user = this.req.user;
 	// all views have next, response, request, view, resource, and model in scope for referencing.
