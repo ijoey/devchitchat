@@ -1,13 +1,22 @@
-{"name": "devchitchat"
-	, "version": "0.0.1"
-	, "private": false
-	, "dependencies": {
-      "express": "*"
-	  , "mime":"*"
-	  , "ejs":"*"
-	  , "socket.io":"*"
-	  , "nstore":"*"
-	  , "passport":"*"
-	  , "passport-twitter":"*"
-  	}
+{
+  "name": "devchitchat"
+  , "version": "0.0.1"
+  , "private": false
+  , "repository": "https://github.com/ijoey/devchitchat"
+  , "dependencies": {
+    "express": "*"
+    , "mime": "*"
+    , "ejs": "*"
+    , "socket.io": "*"
+    , "nstore": "*"
+    , "passport": "*"
+    , "passport-twitter": "*"
+  }
+  , "devDependencies": {
+    "grunt": "~0.4.0"
+    , "grunt-contrib-compress":"~0.5.2"
+    , "grunt-contrib-jshint": "*"
+    , "grunt-contrib-nodeunit": "*"
+    , "grunt-contrib-uglify": "*"
+ }
 }
