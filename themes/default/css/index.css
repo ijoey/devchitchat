@@ -92,7 +92,6 @@ body {
 	-webkit-tap-highlight-color: rgba(255,0,0, 0.62);
 }
 
-
 /*
 	Style overrides for IE6-8
 	http://jonikorpi.com/leaving-old-IE-behind/
@@ -123,14 +122,13 @@ body {
 	}
 }
 
-
 /**/
 .discussion {
-  list-style: none;
-  background: #e2e2e2;
-  margin: 0;
-  padding: 0 0 50px 0;
-  overflow: auto;
+	list-style: none;
+	background: #e2e2e2;
+	margin: 0;
+	padding: 0;
+	overflow: auto;
 }
 .discussion li {
 	position: relative;
@@ -143,7 +141,7 @@ body {
 	float: left;
 	padding: 0;
 	border: solid 1px grey;
-	border-radius: 10px;
+	border-radius: 3px;
 	border-top-left-radius: 0;
 }
 .discussion time{
@@ -170,10 +168,12 @@ body {
 	margin-left: auto;
 	text-align: right;
 	border-top-right-radius: 0;
-	border-top-left-radius: 10px;
+	border-top-left-radius: 3px;
 }
 .discussion .avatar{
 	width: 48px;
+	height: 48px;
+	float: left;
 }
 .discussion .self .avatar{
 	right: 0;
@@ -183,9 +183,8 @@ body {
 	margin-left: 65px;
 	margin-right: 0;
 	border-bottom: solid 1px lightgrey;
-	padding-top: 5px;
+	padding-top: 0;
 	padding-bottom: 5px;
-	min-height: 38px;
 	text-align: left;
 }
 .discussion .message article{
@@ -205,17 +204,14 @@ body {
 	border: none;
 	border-radius: 0;
 }
-.comment{
-	position: fixed;
-	bottom: 0;
-	left; 0;
-}
 .comment button{
 	display: none;
 }
 .comment textarea{
+	width: 100%;
 	position: fixed;
-	bottom: 0;
+	top: 0;
 	left: 0;
 	right: 0;
+	width: 100%;
 }

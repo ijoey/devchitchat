@@ -1,12 +1,19 @@
 (function(win){
 	function debug(level){
 		console.log(arguments);
-	}
+	}	
+	
 	View.Message = function(container, model){
 		var self = View.apply(this, [container, model]);
 		this.field = this.container.querySelector("[name='message']");
 		this.form = this.container.querySelector('form');
 		this.button = this.form.querySelector('button');
+		this.offset = {top: container.offsetTop};
+		Object.defineProperty(this, 'top', {
+			get: function(){return parseInt(this.field.style.top.replace('px', ''), 10);}
+			, set: function(v){ this.field.style.top = v+'px';}
+			, enumerable: true
+		});
 		function textDidChange(key, old, v){
 			self.field.value = v;
 		}
@@ -80,12 +87,13 @@
 			var last = container.querySelector(".discussion:last-child");
 			container.removeChild(last);
 		}
+		
 		model.subscribe('push', messageWasAdded);
 		model.subscribe('pop', messageWasRemoved);
 		return this;
 	};
-	Controller.Roster = function(view, model, delegate){
-		var self = Controller.apply(this, [view, model, delegate]);
+	Controller.Roster = function(delegate, view, model){
+		var self = Controller.apply(this, [delegate, view, model]);
 		this.joined = function(member){
 			if(!model.exists(function(m){
 				return m.username === member.username;
@@ -109,10 +117,14 @@
 		return this;
 	};
 	
-	Controller.Message = function(view, model, delegate){
-		var self = Controller.apply(this, [view, model, delegate]);
+	Controller.Message = function(delegate, view, model){
+		var self = Controller.apply(this, [delegate, view, model]);
 		view.field.addEventListener("keyup", this, true);
 		view.form.addEventListener('submit', this, true);
+		view.field.addEventListener('focus', this, true);
+		this.resize = function(viewportSize){
+			view.top = viewportSize.h - 40;
+		};
 		this.handleEvent = function(e){
 			if(this[e.type]) this[e.type](e);
 		};
@@ -136,13 +148,16 @@
 		};
 		return this;
 	};
-	Controller.Discussion = function(view, model, delegate){
-		var self = Controller.apply(this, [view, model, delegate]);
+	Controller.Discussion = function(delegate, view, model){
+		var self = Controller.apply(this, [delegate, view, model]);
 		this.messageWasSubmitted = function(message){
 			if(message && message.text.length > 0) model.push(message);
 		};
 		this.message = function(message){
-			if(message && message.text.length > 0) model.push(new Model.Message(message));
+			if(message && message.text.length > 0){
+				if(this.delegate && this.delegate.messageWasReceived) this.delegate.messageWasReceived(message);
+				model.push(new Model.Message(message));
+			}
 		};
 		return this;
 	};
@@ -265,7 +280,8 @@
 		var message = new Model.Message({text: null, to: {username: win.member ? win.member.profile.username : null, profile_image_url: win.member ? win.member.profile._json.profile_image_url : null}});
 		var messages = new Model.List();
 		var roster = new Model.List();
-		this.release = function(e){
+		var self = {};
+		self.release = function(e){
 			controllers.forEach(function(c){
 				c.release();
 			});
@@ -280,69 +296,86 @@
 				socket.removeAllListeners('left');
 			}
 		};
-		this.messageWasSubmitted = function(model){
+		self.messageWasReceived = function(message){
+			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?/ig, '<img src="$&" />');
+			return message;
+		};
+		self.messageWasSubmitted = function(model){
 			controllers.forEach(function(c){
 				if(c.messageWasSubmitted) c.messageWasSubmitted(model);
 			});
 			if(model.text.length > 0) socket.emit('message', model.text);
 		};
-		this.connected = function(nicknames){
+		self.connected = function(nicknames){
 			controllers.forEach(function(c){
 				if(c.connected) c.connected(nicknames);
 			});
 		};
-		this.joined = function(member){
+		self.joined = function(member){
 			controllers.forEach(function(c){
 				if(c.joined) c.joined(member);
 			});
 		};
-		this.nicknames = function(nicknames){
+		self.nicknames = function(nicknames){
 			controllers.forEach(function(c){
 				if(c.nicknames) c.nicknames(nicknames);
 			});
 		};
-		this.message = function(message){
+		self.message = function(message){
 			controllers.forEach(function(c){
 				message.to = {username: win.member.profile.username, profile_image_url: win.member.profile._json.profile_image_url};
 				if(c.message) c.message(message);
 			});
 		};
-		this.reconnect = function(protocol, flag){
+		self.reconnect = function(protocol, flag){
 			debug(0, 'reconnect->', arguments);			
 		    socket.emit('nickname', win.member.profile.username, function(exists){
 		    	roster.push(new Model.Member({username: win.member.profile.username, profile_image_url: win.member.profile._json.profile_image_url}));
 		    });
 		};
-		this.reconnecting = function(someNumber, flag){
+		self.reconnecting = function(someNumber, flag){
 			debug(0, 'reconnecting->', arguments);			
 		};
-		this.error = function(){
-			debug(0, 'error->', arguments);			
+		self.error = function(){
+			debug(0, 'error->', arguments);
 		};
-		this.left = function(member){
+		self.left = function(member){
 			controllers.forEach(function(c){
 				if(c.left) c.left(member);
 			});
 		};
+		self.handleEvent = function(e){
+			if(self[e.type]) self[e.type](e);
+		};
+		self.resize = function(e){
+			controllers.forEach(function(c){
+				if(c.resize) c.resize({h: e.target.document.documentElement.clientHeight, w: e.target.document.documentElement.clientWidth});
+			});			
+		};
+		
 		var socket;
 		if(win.member){
 			socket = io.connect();
-			socket.on('connected', this.connected);
-			socket.on('left', this.left);
-			socket.on('joined', this.joined);
-			socket.on('nicknames', this.nicknames);
-			socket.on('message', this.message);
-			socket.on('reconnect', this.reconnect);
-			socket.on('reconnecting', this.reconnecting);
-			socket.on('error', this.error);
-			controllers.push(new Controller.Discussion(new View.Discussion(document.getElementById('messagesView'), messages), messages, this));
-			controllers.push(new Controller.Roster(new View.Roster(document.getElementById('rosterView'), roster), roster, this));
-			controllers.push(new Controller.Message(new View.Message(document.getElementById("comment"), message), message, this));
+			socket.on('connected', self.connected);
+			socket.on('left', self.left);
+			socket.on('joined', self.joined);
+			socket.on('nicknames', self.nicknames);
+			socket.on('message', self.message);
+			socket.on('reconnect', self.reconnect);
+			socket.on('reconnecting', self.reconnecting);
+			socket.on('error', self.error);
+			var messageController = null;
+			controllers.push(new Controller.Discussion(self, new View.Discussion(document.getElementById('messagesView'), messages), messages));
+			controllers.push(new Controller.Roster(self, new View.Roster(document.getElementById('rosterView'), roster), roster));
+			controllers.push(messageController = new Controller.Message(self, new View.Message(document.getElementById("comment"), message), message));
+			messageController.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth})
+			win.addEventListener('resize', self, true);
+			
 		    socket.emit('nickname', win.member.profile.username, function(exists){
 		    	roster.push(new Model.Member({username: win.member.profile.username, profile_image_url: win.member.profile._json.profile_image_url}));
 		    });
 		}
-		win.addEventListener('unload', this.release);
-		return this;
+		win.addEventListener('unload', self.release);		
+		return self;
 	}();
 })(window);

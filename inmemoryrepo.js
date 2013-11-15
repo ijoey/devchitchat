@@ -49,7 +49,6 @@ InMemoryRepo.prototype = {
 	, save: function(key, obj, callback){
 		if(!key) key = guid();
 		this.data[key] = obj;
-		console.log('saving to memory->', obj);
 		if(callback) callback(null, key);	
 	}
 };

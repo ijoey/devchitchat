@@ -1,0 +1,19 @@
+<form method="post">
+	<fieldset>
+		<legend>Sign in</legend>
+		<input type="text" name="username" placeholder="username" />
+		<input type="password" name="password" placeholder="password" />
+	</fieldset>
+	<button type="submit">Sign in</button>
+</form>
+<script>
+function arraySum(i) {
+	var sum = 0;
+	for(key in i){
+		if(i[key].join) sum = arraySum(i[key]);
+		else sum += parseInt(i[key]);
+	}
+	return sum;
+}
+console.log(arraySum([[1,2,3], 4, 5]));
+</script>

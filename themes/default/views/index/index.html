@@ -2,8 +2,7 @@
 	<script>
 	var member = <%- JSON.stringify(request.user)%>;
 	</script>
-	<h1><%- request.user.profile.username%></h1>
-	<form method="get" action="/logout">
+	<form method="get" action="/logout" style="display: none;">
 		<fieldset>
 			<button type="submit">Sign out</button>
 		</fieldset>
@@ -34,16 +33,7 @@
 			<%}%>
 		</ol>
 	</div>
-	<div id="comment" class="comment">
-		<form>
-			<fieldset>
-				<legend></legend>
-				<textarea name="message"></textarea>
-				<button type="submit">Send</button>
-			</fieldset>
-		</form>
-	</div>
-	<div id="rosterView" class="right nav view">
+	<div id="rosterView" class="right nav view" style="display: none;">
 		<ul>
 			<li>
 				<img data-src="{{profile_image_url}}" />
@@ -51,10 +41,19 @@
 			</li>
 		</ul>
 	</div>
+	<footer id="comment" class="comment">
+		<form>
+			<fieldset>
+				<legend></legend>
+				<textarea name="message"></textarea>
+				<button type="submit">Send</button>
+			</fieldset>
+		</form>
+	</footer>
 	<%}else{%>
 	<form  method="get" action="/auth/twitter">
 		<fieldset>
 			<button type="submit" class="twitter">Sign in with Twitter</button>
 		</fieldset>
-	</form>	
+	</form>
 <%}%>

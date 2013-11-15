@@ -9,5 +9,7 @@
 	  , "nstore":"*"
 	  , "passport":"*"
 	  , "passport-twitter":"*"
+	  , "passport-ldapauth":"*"
+      , "nstore": "git://github.com/ijoey/nstore.git#master"
   	}
 }
