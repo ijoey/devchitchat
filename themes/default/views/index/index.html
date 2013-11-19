@@ -51,9 +51,14 @@
 		</form>
 	</footer>
 	<%}else{%>
-	<form  method="get" action="/auth/twitter">
+	<form method="get" action="/auth/twitter">
 		<fieldset>
 			<button type="submit" class="twitter">Sign in with Twitter</button>
+		</fieldset>
+	</form>
+	<form method="get" action="/auth/google">
+		<fieldset>
+			<button type="submit" class="twitter">Sign in with Google</button>
 		</fieldset>
 	</form>
 <%}%>

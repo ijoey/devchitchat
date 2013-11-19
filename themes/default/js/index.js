@@ -297,7 +297,6 @@
 			}
 		};
 		self.messageWasReceived = function(message){
-			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?/ig, '<img src="$&" />');
 			return message;
 		};
 		self.messageWasSubmitted = function(model){

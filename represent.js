@@ -80,6 +80,7 @@ module.exports = (function(){
 									});
 									output = output.join('');
 									if(!result.resource.status.code) result.response.statusCode = 200;
+									if(result.response.headersSent) console.trace("header sent, didn't expect it");
 									result.response.setHeader('Content-Length', Buffer.byteLength(output));
 									result.response.send(output);				
 								}

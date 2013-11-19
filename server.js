@@ -3,15 +3,34 @@ var config = {};
 if(process.env.TWITTER_CONSUMER_KEY === undefined){
 	process.env = require('./env.js');
 }
+
+var os=require('os');
+var ifaces = os.networkInterfaces();
+var addresses = [];
+for(var key in ifaces){
+	var iface = ifaces[key];
+	var address = iface.reduce(function(previous, current, index, ary){
+		return current.family === 'IPv4' && !current.internal ? current.address : null;
+	});
+	addresses.push(address);
+}
+var localhost = addresses.reduce(function(previous, current, index, ary){
+	return current === null ? '' : current;
+});
 config.twitter = {
 	key: process.env.TWITTER_CONSUMER_KEY
 	, secret: process.env.TWITTER_CONSUMER_SECRET
-	, callback: process.env.TWITTER_CALLBACK_URL
+	, callback: 'http://' + localhost + process.env.TWITTER_CALLBACK_URL
 };
 config.cookie = {
 	secret: process.env.COOKIE_SECRET
 	, key: process.env.COOKIE_KEY
 };
+config.google = {
+	returnUrl: 'http://' + localhost + process.env.GOOGLE_RETURN_URL
+	, realm: 'http://' + localhost
+};
+config.hubotToken = process.env.HUBOT_AUTH_TOKEN;
 
 var runAsUser = null;
 var express = require('express');
@@ -28,6 +47,8 @@ var nStore = require('nstore');
 nStore = nStore.extend(require('nstore/query')());
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
+var GoogleStrategy = require('passport-google').Strategy;
+  
 var members = nStore.new(process.env.DATA_PATH + '/members.db', function(err){
 	if(err) console.log(err);
 	else console.log('nStore members loaded');
@@ -39,6 +60,7 @@ var messages = nStore.new(process.env.DATA_PATH + '/messages.db', function(err){
 var posts = nStore.new(process.env.DATA_PATH + '/posts.db');
 var lastPost = nStore.new(process.env.DATA_PATH + '/lastpost.db');
 var compacterInterval = setInterval(function(){
+	if(!members.compactDatabase) return;
 	members.compactDatabase(false, function(doc, key){
 		console.log('compacting members', doc, key);
 		return doc === undefined;
@@ -59,7 +81,7 @@ var compacterInterval = setInterval(function(){
 }, 1*60*60);
 
 var hubot = {"1": 
-	{"token":"48d64e93-a7e6-4bc8-8ea8-2d6c702bb9ff"
+	{"token":config.hubotToken
 	, "profile":{"provider":"local", "id":1, "username":"Hubot","displayName":"Hubot"
 	, "_json":{"profile_image_url":"public/images/hubot.png"}}}
 };
@@ -110,6 +132,32 @@ app.configure(function(){
 			done(null, null);
 		});
 	});
+	passport.use(new GoogleStrategy({
+		returnURL: config.google.returnUrl
+		, realm: config.google.realm
+	}
+	, function(identifier, profile, done){
+		console.log(identifier, profile);
+		members.find({openId: identifier}, function(err, results){
+			if(err) return done(err);
+			var foundMemberAndFinish = Object.keys(results).length > 0;
+			if(foundMemberAndFinish){
+				var member = (function(){ for(var key in results){return results[key];}})();
+				return done(null, member);
+			}
+			console.log('member not found. going to save->', identifier);
+			var member = {openId: identifier, "profile":profile};
+			members.save(null, member, function(err, key){
+				console.log('saving->', err);
+				if(err) return done(err);
+				members.find({openId: member.identifier}, function(err, member){
+					console.log('finding member again->', err, member);
+					for(var key in member) return done(null, member[key]);
+				});
+			});
+		});
+	}));
+	
 	passport.use(new TwitterStrategy({
 		consumerKey: config.twitter.key
 		, consumerSecret: config.twitter.secret
@@ -244,4 +292,5 @@ server.listen(port, function(){
 		process.setgid(runAsUser);
 		process.setuid(runAsUser);
 	}
+	console.log("server up and running on ", localhost);
 });
