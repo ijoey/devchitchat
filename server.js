@@ -12,6 +12,7 @@ config.cookie = {
 	secret: process.env.COOKIE_SECRET
 	, key: process.env.COOKIE_KEY
 };
+config.hubotToken = process.env.HUBOT_AUTH_TOKEN;
 
 var runAsUser = null;
 var express = require('express');
@@ -59,7 +60,7 @@ var compacterInterval = setInterval(function(){
 }, 1*60*60);
 
 var hubot = {"1": 
-	{"token":"48d64e93-a7e6-4bc8-8ea8-2d6c702bb9ff"
+	{"token":config.hubotToken
 	, "profile":{"provider":"local", "id":1, "username":"Hubot","displayName":"Hubot"
 	, "_json":{"profile_image_url":"public/images/hubot.png"}}}
 };
