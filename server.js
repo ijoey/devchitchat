@@ -76,6 +76,11 @@ process.argv.forEach(function(value, fileName, args){
 	if(/as:/.test(value)) runAsUser = /as\:([a-zA-Z-]+)/.exec(value)[1];
 	if(/port:/.test(value)) port = /port:(\d+)/.exec(value)[1];
 });
+process.on('uncaughtException', function(err){
+    console.log('got an error: %s', err.message);
+    process.exit(1);
+});
+
 if(!port) port = 10000;
 app.response.represent = function(view, resource, model, next){
 	resource.user = this.req.user;
