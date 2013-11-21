@@ -29,10 +29,6 @@ var nStore = require('nstore');
 nStore = nStore.extend(require('nstore/query')());
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
-var members = nStore.new(process.env.DATA_PATH + '/members.db', function(err){
-	if(err) console.log(err);
-	else console.log('nStore members loaded');
-});
 var messages = nStore.new(process.env.DATA_PATH + '/messages.db', function(err){
 	if(err) console.log(err);
 	else console.log('nStore messages loaded');
@@ -64,12 +60,17 @@ var hubot = {"1":
 	, "profile":{"provider":"local", "id":1, "username":"Hubot","displayName":"Hubot"
 	, "_json":{"profile_image_url":"public/images/hubot.png"}}}
 };
-members.find({token: hubot[1].token}, function(err, doc){
-	if(Object.keys(doc).length === 0){
-		members.save(null, hubot[1], function(err){
-			if(err) console.log(err);
-		});
-	}
+var members = nStore.new(process.env.DATA_PATH + '/members.db', function(err){
+	if(err) console.log(err);
+	else console.log('nStore members loaded');
+	members.find({"token": hubot[1].token}, function(err, doc){
+		if(Object.keys(doc).length === 0){
+			console.log("didn't find hubot", hubot[1].token);
+			members.save(null, hubot[1], function(err){
+				if(err) console.log(err);
+			});
+		}
+	});
 });
 process.argv.forEach(function(value, fileName, args){
 	if(/as:/.test(value)) runAsUser = /as\:([a-zA-Z-]+)/.exec(value)[1];
