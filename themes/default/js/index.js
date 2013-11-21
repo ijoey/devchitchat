@@ -274,7 +274,10 @@
 	  }
 	  return this;
 	};
-	
+	var imageFilter = function(message){
+		message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?/ig, '<img src="$&" />');
+		return message;
+	};
 	var app = function(){
 		var controllers = [];
 		var message = new Model.Message({text: null, to: {username: win.member ? win.member.profile.username : null, profile_image_url: win.member ? win.member.profile._json.profile_image_url : null}});
@@ -297,8 +300,7 @@
 			}
 		};
 		self.messageWasReceived = function(message){
-			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?/ig, '<img src="$&" />');
-			return message;
+			return imageFilter(message);
 		};
 		self.messageWasSubmitted = function(model){
 			controllers.forEach(function(c){
