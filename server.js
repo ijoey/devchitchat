@@ -191,7 +191,7 @@ io.configure(function(){
 			if(err) return callback("Unauthorized", false);
 			member = (function(){for(var key in member) return member[key];})();
 			if(!member) return callback("Unauthorized", false);
-			nicknames[member.profile.username] = {username: member.profile.username, profile_image_url: member.profile._json.profile_image_url};
+			nicknames[member.profile.username] = {username: member.profile.username, token: member.token, profile_image_url: member.profile._json.profile_image_url};
 			callback(null, true);	
 		});
 	});
@@ -225,7 +225,7 @@ io.sockets.on('connection', function (socket) {
 			member = (function(){for(var key in member) return member[key];})();
 			console.log('looking for member by nickname:', nick, err);
 			if(!member) return fn(false);
-			nicknames[nick] = {username: member.profile.username, profile_image_url: member.profile._json.profile_image_url};
+			nicknames[nick] = {username: member.profile.username, token: member.token, profile_image_url: member.profile._json.profile_image_url};
 			socket.broadcast.emit('joined', nicknames[nick]);
 			io.sockets.emit('nicknames', nicknames);
 			return fn(true);

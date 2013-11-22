@@ -280,7 +280,7 @@
 	};
 	var app = function(){
 		var controllers = [];
-		var message = new Model.Message({text: null, to: {username: win.member ? win.member.profile.username : null, profile_image_url: win.member ? win.member.profile._json.profile_image_url : null}});
+		var message = new Model.Message({text: null, to: {token: win.member.token, username: win.member ? win.member.profile.username : null, profile_image_url: win.member ? win.member.profile._json.profile_image_url : null}});
 		var messages = new Model.List();
 		var roster = new Model.List();
 		var self = {};
@@ -325,14 +325,14 @@
 		};
 		self.message = function(message){
 			controllers.forEach(function(c){
-				message.to = {username: win.member.profile.username, profile_image_url: win.member.profile._json.profile_image_url};
+				message.to = {username: win.member.profile.username, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url};
 				if(c.message) c.message(message);
 			});
 		};
 		self.reconnect = function(protocol, flag){
 			debug(0, 'reconnect->', arguments);			
 		    socket.emit('nickname', win.member.profile.username, function(exists){
-		    	roster.push(new Model.Member({username: win.member.profile.username, profile_image_url: win.member.profile._json.profile_image_url}));
+		    	roster.push(new Model.Member({username: win.member.profile.username, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url}));
 		    });
 		};
 		self.reconnecting = function(someNumber, flag){
@@ -374,7 +374,7 @@
 			win.addEventListener('resize', self, true);
 			
 		    socket.emit('nickname', win.member.profile.username, function(exists){
-		    	roster.push(new Model.Member({username: win.member.profile.username, profile_image_url: win.member.profile._json.profile_image_url}));
+		    	roster.push(new Model.Member({username: win.member.profile.username, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url}));
 		    });
 		}
 		win.addEventListener('unload', self.release);		
