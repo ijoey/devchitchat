@@ -21,7 +21,9 @@ module.exports = function index(app){
 			repo.find({"time >=": today.getTime()}, function(err, doc){
 				var list = [];
 				for(var key in doc){
-					list.push(doc[key]);
+					var obj = doc[key];
+					if(!obj.author.username) obj.author.username = '';
+					list.push(obj);
 				}
 				list.sort(byDate);
 				resp.represent('index/index', self, list, next);
