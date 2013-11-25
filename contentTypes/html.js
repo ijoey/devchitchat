@@ -15,7 +15,11 @@ function readFromFile(filePath, result, callback){
 module.exports = (function html(){
 	return {
 		key: "text/html"
-		, execute: function(filePath, represent, result, callback){
+		, execute: function(exists, filePath, represent, result, callback){
+			if(!exists){
+				result.response.statusCode = 404;
+				return callback("Not found");
+			}
 			readFromFile(filePath, result, function(output){
 				if(result.request.url.indexOf('.phtml') > -1) return callback(output);
 				result.output = output;
