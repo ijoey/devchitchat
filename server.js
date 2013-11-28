@@ -26,10 +26,6 @@ config.cookie = {
 	secret: process.env.COOKIE_SECRET
 	, key: process.env.COOKIE_KEY
 };
-config.google = {
-	returnUrl: 'http://' + localhost + process.env.GOOGLE_RETURN_URL
-	, realm: 'http://' + localhost
-};
 config.hubotToken = process.env.HUBOT_AUTH_TOKEN;
 
 var runAsUser = null;
@@ -47,7 +43,6 @@ var nStore = require('nstore');
 nStore = nStore.extend(require('nstore/query')());
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
-var GoogleStrategy = require('passport-google').Strategy;
 var messages = nStore.new(process.env.DATA_PATH + '/messages.db', function(err){
 	if(err) console.log(err);
 	else console.log('nStore messages loaded');
@@ -97,7 +92,7 @@ process.argv.forEach(function(value, fileName, args){
 	if(/port:/.test(value)) port = /port:(\d+)/.exec(value)[1];
 });
 process.on('uncaughtException', function(err){
-    console.log('got an error: %s', err.message);
+    console.trace('got an error:', err);
     process.exit(1);
 });
 
@@ -136,33 +131,7 @@ app.configure(function(){
 			for(var key in member) return done(err, member[key]);
 			done(null, null);
 		});
-	});
-	passport.use(new GoogleStrategy({
-		returnURL: config.google.returnUrl
-		, realm: config.google.realm
-	}
-	, function(identifier, profile, done){
-		console.log(identifier, profile);
-		members.find({openId: identifier}, function(err, results){
-			if(err) return done(err);
-			var foundMemberAndFinish = Object.keys(results).length > 0;
-			if(foundMemberAndFinish){
-				var member = (function(){ for(var key in results){return results[key];}})();
-				return done(null, member);
-			}
-			console.log('member not found. going to save->', identifier);
-			var member = {openId: identifier, "profile":profile};
-			members.save(null, member, function(err, key){
-				console.log('saving->', err);
-				if(err) return done(err);
-				members.find({openId: member.identifier}, function(err, member){
-					console.log('finding member again->', err, member);
-					for(var key in member) return done(null, member[key]);
-				});
-			});
-		});
-	}));
-	
+	});	
 	passport.use(new TwitterStrategy({
 		consumerKey: config.twitter.key
 		, consumerSecret: config.twitter.secret
@@ -223,6 +192,25 @@ function ErrorMessage(error){
 	}
 }
 
+function byDate(a, b){
+	if(a.time === b.time) return 0;
+	if(a.time < b.time) return -1;
+	return 1;
+}
+function getPreviousMessages(callback){
+	var today = new Date();
+	today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+	messages.find({"time >=": today.getTime()}, function(err, doc){
+		if(err) throw err;
+		var list = [];
+		for(var key in doc){
+			list.push(doc[key]);
+		}
+		list.sort(byDate);
+		callback(err, list);
+	});
+}
+
 var nicknames = {};
 io.configure(function(){
 	io.set('log level', 2);
@@ -237,7 +225,7 @@ io.configure(function(){
 			if(err) return callback("Unauthorized", false);
 			member = (function(){for(var key in member) return member[key];})();
 			if(!member) return callback("Unauthorized", false);
-			nicknames[member.profile.username] = {username: member.profile.username, token: member.token, profile_image_url: member.profile._json.profile_image_url};
+			nicknames[member.token] = {username: member.profile.username, name: member.profile.displayName, token: member.token, profile_image_url: member.profile._json.profile_image_url};
 			callback(null, true);	
 		});
 	});
@@ -256,6 +244,12 @@ io.sockets.on('connection', function (socket) {
 			if(err) console.log('error saving ', err);
 		});
 	});
+	socket.on('send previous messages', function(msg, ack){
+		getPreviousMessages(function(err, messages){
+			if(err) throw err;
+			return ack(messages);
+		});
+	});
 	socket.on('nickname', function (nick, fn) {
 		socket.nickname = nick;
 		if (nicknames[nick]) {
@@ -264,14 +258,14 @@ io.sockets.on('connection', function (socket) {
 			return fn(true);
 		}
 		console.log('couldnt find ', nick);
-		members.find({"profile.username": nick}, function(err, member) {
+		members.find({"token": nick}, function(err, member) {
 			if(err){
 				return fn(false);
 			}
 			member = (function(){for(var key in member) return member[key];})();
 			console.log('looking for member by nickname:', nick, err);
 			if(!member) return fn(false);
-			nicknames[nick] = {username: member.profile.username, token: member.token, profile_image_url: member.profile._json.profile_image_url};
+			nicknames[nick] = {username: member.profile.username, name: member.profile.displayName, token: member.token, profile_image_url: member.profile._json.profile_image_url};
 			socket.broadcast.emit('joined', nicknames[nick]);
 			io.sockets.emit('nicknames', nicknames);
 			return fn(true);

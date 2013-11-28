@@ -55,6 +55,44 @@
 		template.style.display = 'none';
 		var messageTemplate = Hogan.compile(template.innerHTML);
 		var lastTimeMessageWasSent = (new Date()).getTime();
+		var filters = [];		
+		function filterForImages(message){
+			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?(&.*)?#\.png/ig, '<img src="$&" />');
+			return message;
+		}
+		function filterGithubResponse(message){
+			try{
+				var users = JSON.parse(message.text);
+				if(users.what === 'github list of users'){
+					message.text = '<ul>';
+					users.items.forEach(function(user){
+						message.text += '<li><a href="' + user.html_url + '"><img src="' + user.avatar_url + '" /></a></li>';
+					});
+					message.text += '</ul>';
+				}
+			}catch(e){
+			}
+			return message;
+		}
+		function filterListOfUsers(message){
+			try{
+				var users = JSON.parse(message.text);
+				if(users.what === 'list of users'){
+					message.text = '<ul>';
+					for(key in users){
+						if(!users[key].profile_image_url) continue;
+						message.text += '<li><img src="' + users[key].profile_image_url + '" /></a></li>';
+					}
+					message.text += '</ul>';
+				}
+			}catch(e){
+			}
+			return message;			
+		}
+		filters.push({execute: filterGithubResponse});
+		filters.push({execute: filterListOfUsers});
+		filters.push({execute: filterForImages});
+		
 		function messageWasAdded(key, old, v, m){
 			if(!v) return;
 			if(!v.from) return;
@@ -62,6 +100,9 @@
 			var elem = template.cloneNode(true);
 			elem.setAttribute('data-from', v.from.username);
 			elem.style.display = 'block';
+			filters.forEach(function(filter){
+				v = filter.execute(v);
+			});
 			if(lastMessage === null){
 				elem.innerHTML = messageTemplate.render(v);				
 				var first = discussion.querySelector('.discussion li:first-child');
@@ -249,6 +290,16 @@
 	};
 	Model.Member = function(obj){
   	  var self = Model.apply(this, [obj]);
+	  var token = null;
+	  Object.defineProperty(this, "token", {
+	    get: function(){return token;}
+	    , set: function(v){
+	      var old = token;
+	      self.changed("token", old, v, self);
+	      token = v;
+	    }
+		, enumerable: true
+	  });
 	  var username = null;
 	  Object.defineProperty(this, "username", {
 	    get: function(){return username;}
@@ -269,18 +320,25 @@
 	    }
 		, enumerable: true
 	  });
+	  var name = null;
+	  Object.defineProperty(this, "name", {
+	    get: function(){return name;}
+	    , set: function(v){
+	      var old = name;
+	      self.changed("name", old, v, self);
+	      name = v;
+	    }
+		, enumerable: true
+	  });
+	  
 	  for(var key in obj){
 		  this[key] = obj[key];
 	  }
 	  return this;
 	};
-	var imageFilter = function(message){
-		message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?/ig, '<img src="$&" />');
-		return message;
-	};
 	var app = function(){
 		var controllers = [];
-		var message = new Model.Message({text: null, to: {token: win.member.token, username: win.member ? win.member.profile.username : null, profile_image_url: win.member ? win.member.profile._json.profile_image_url : null}});
+		var message = new Model.Message({text: null, to: {token: win.member.token, name: win.member.profile.displayName, username: win.member ? win.member.profile.username : null, profile_image_url: win.member ? win.member.profile._json.profile_image_url : null}});
 		var messages = new Model.List();
 		var roster = new Model.List();
 		var self = {};
@@ -300,7 +358,7 @@
 			}
 		};
 		self.messageWasReceived = function(message){
-			return imageFilter(message);
+			return message;
 		};
 		self.messageWasSubmitted = function(model){
 			controllers.forEach(function(c){
@@ -325,14 +383,14 @@
 		};
 		self.message = function(message){
 			controllers.forEach(function(c){
-				message.to = {username: win.member.profile.username, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url};
+				message.to = {username: win.member.profile.username, name: win.member.profile.displayName, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url};
 				if(c.message) c.message(message);
 			});
 		};
 		self.reconnect = function(protocol, flag){
 			debug(0, 'reconnect->', arguments);			
-		    socket.emit('nickname', win.member.profile.username, function(exists){
-		    	roster.push(new Model.Member({username: win.member.profile.username, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url}));
+		    socket.emit('nickname', win.member.token, function(exists){
+		    	roster.push(new Model.Member({username: win.member.profile.username, name: win.member.profile.displayName, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url}));
 		    });
 		};
 		self.reconnecting = function(someNumber, flag){
@@ -373,9 +431,14 @@
 			messageController.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth})
 			win.addEventListener('resize', self, true);
 			
-		    socket.emit('nickname', win.member.profile.username, function(exists){
-		    	roster.push(new Model.Member({username: win.member.profile.username, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url}));
+		    socket.emit('nickname', win.member.token, function(exists){
+		    	roster.push(new Model.Member({username: win.member.profile.username, name: win.member.profile.displayName, token: win.member.token, profile_image_url: win.member.profile._json.profile_image_url}));
 		    });
+			socket.emit('send previous messages', 'hello?', function(list){
+				list.forEach(function(m){
+					messages.push(new Model.Message({text: m.message, to: win.member.profile, from: m.author}));
+				});
+			});
 		}
 		win.addEventListener('unload', self.release);		
 		return self;

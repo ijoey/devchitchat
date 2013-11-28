@@ -19,19 +19,6 @@
 				</div>
 			</li>
 		</ol>
-		<ol class="previous discussion">
-			<% for(var key in model){%>
-				<li<%- request.user.profile.username === model[key].author.username ? ' class="self"' : ""%>>
-					<div class="avatar">
-						<img src="<%- model[key].author.profile_image_url%>" />
-					</div>
-					<div class="message">
-						<article><%- model[key].message%></article>
-						<time datetime="<%- new Date(model[key].time) %>"><%- new Date(model[key].time)%></time>
-					</div>
-				</li>
-			<%}%>
-		</ol>
 	</div>
 	<div id="rosterView" class="right nav view" style="display: none;">
 		<ul>

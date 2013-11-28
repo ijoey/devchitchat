@@ -85,7 +85,7 @@ module.exports = (function(){
 		else result.response.statusCode = 200;
 		fs.exists(filePath, function(exists){
 			if(!contentType) return result.response.send(406);
-			contentType.execute(filePath, self, result, function(output){
+			contentType.execute(exists, filePath, self, result, function(output){
 				result.response.setHeader('Content-Length', Buffer.byteLength(output));
 				result.response.send(output);
 			});
