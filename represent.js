@@ -1,104 +1,94 @@
-var path = require('path');
-var ejs = require('ejs');
+var Path = require('path');
 var fs = require('fs');
 var mime = require('mime');
-var url = require('url');
+var Url = require('url');
+var Mimeparse = require('./mimeparse.js');
+var contentTypes = {};
+var conteTypesFolder = __dirname + "/contentTypes";
+fs.readdirSync(conteTypesFolder).forEach(function(file) {
+	var contentType = require(conteTypesFolder + "/" + file);
+	contentTypes[contentType.key] = contentType;
+});
+
 module.exports = (function(){
 	var self = {};	
-	var _themeRoot = __dirname + "/themes/default/";
-	self.__defineGetter__("themeRoot", function(){
-		return _themeRoot;
+	var themeRoot = __dirname + "/themes/default/";
+	Object.defineProperty(self, 'themeRoot', {
+		get: function(){ return themeRoot;}
+		, set: function(v){
+			themeRoot = v;
+		}
+		, enumerable: true
 	});
-	self.__defineSetter__("themeRoot", function(v){
-		_themeRoot = v;
-	});	
-	var _viewsRoot = _themeRoot + "views/";
-	self.__defineGetter__("viewsRoot", function(){
-		return _viewsRoot;
-	});
-	self.__defineSetter__("viewsRoot", function(v){
-		_viewsRoot = v;
-	});	
-	var _layoutRoot = _viewsRoot + "layouts/";
-	self.__defineGetter__("layoutRoot", function(){
-		return _layoutRoot;
-	});
-	self.__defineSetter__("layoutRoot", function(v){
-		_layoutRoot = v;
+	
+	var viewsRoot = themeRoot + "views/";
+	Object.defineProperty(self, 'viewsRoot', {
+		get: function(){ return viewsRoot;}
+		, set: function(v){
+			viewsRoot = v;
+		}
+		, enumerable: true
 	});
 
-	var _defaultExt = ".html";
-	self.__defineGetter__("defaultExt", function(){
-		return _defaultExt;
+	var layoutRoot = viewsRoot + "layouts/";
+	Object.defineProperty(self, 'layoutRoot', {
+		get: function(){ return layoutRoot;}
+		, set: function(v){
+			layoutRoot = v;
+		}
+		, enumerable: true
 	});
-	self.__defineSetter__("defaultExt", function(v){
-		_defaultExt = v;
-	});	
 
+	var defaultExt = ".html";
+	Object.defineProperty(self, 'defaultExt', {
+		get: function(){ return defaultExt;}
+		, set: function(v){
+			defaultExt = v;
+		}
+		, enumerable: true
+	});
+	
+	function fromTheAcceptHeader(method, headers){
+		var key = null;
+		if(['GET','HEAD'].indexOf(method) > -1) key = 'accept';
+		else key = 'content-type';
+		var ext = null;
+		if(headers[key]){
+			var bestMatch = Mimeparse.bestMatch(['text/html', 'application/json', 'application/xml', '*/*'], headers[key]);
+			ext = mime.extension(bestMatch);
+		}
+		if(ext !== null && ext !== undefined) return '.' + ext;
+		return null;
+	}
+	function fromUrl(url){
+		var parsed = Url.parse(url, true, true);
+		return Path.extname(parsed.pathname);
+	}
+	function extensionViaContentNegotation(request){
+		var urlExt = fromUrl(request.url);
+		if(urlExt.length > 1) return urlExt;
+		var ext = fromTheAcceptHeader(request.method, request.headers);
+		return ext;
+	}
+	
 	self.execute = function(result){
 		var output = null;
-		var useLayout = true;
-		var parsed = url.parse(result.request.url, true, true);
-		var ext = path.extname(parsed.pathname);
-		if(ext.length === 0) ext = this.defaultExt;
-		if(ext === ".phtml"){
-			ext = ".html";
-			useLayout = false;
-		}
+		var ext = extensionViaContentNegotation(result.request);
+		if(ext === null) ext = this.defaultExt;
+		ext = ext === ".phtml" ? ".html" : ext;
 		var filePath = this.viewsRoot + result.view + ext;
-		for(prop in result.resource.header){
-			result.response.setHeader(prop, result.resource.header[prop]);
-		}
-		
-		if(!result.resource.header["Content-Type"]) result.response.setHeader("Content-Type", mime.lookup(ext));
-		if(result.resource.status.code){
-			result.response.statusCode = result.resource.status.code;
-		}
+		for(prop in result.resource.header) result.response.setHeader(prop, result.resource.header[prop]);
+		var contentTypeKey = mime.lookup(ext);
+		var contentType = contentTypes[contentTypeKey];
+		if(!result.resource.header["Content-Type"]) result.response.setHeader("Content-Type", contentTypeKey);
+		if(result.resource.status.code) result.response.statusCode = result.resource.status.code;
+		else result.response.statusCode = 200;
 		fs.exists(filePath, function(exists){
-			if(exists){
-				fs.readFile(filePath, {encoding: "utf-8"}
-					, function(err, data){
-						if(err) throw err;
-						output = ejs.render(data, result);
-						output = output.split(/\n/).join('');
-						if(!useLayout){
-							result.output = output;
-							if(!result.resource.status.code) result.response.statusCode = 200;
-							output = ejs.render(data, result);
-							result.response.setHeader('Content-Length', Buffer.byteLength(output));
-							result.response.send(output);
-						}else{
-							var layoutPath = self.layoutRoot + result.resource.layout + ext;
-							fs.readFile(layoutPath, {encoding: "utf-8"}
-								, function(err, data){
-									if(err) throw err;
-									result.output = output;
-									output = ejs.render(data, result);
-									output = output.split(/\n/);
-									output.forEach(function(s){
-										s = s.replace(/^\t+/, '');
-									});
-									output = output.join('');
-									if(!result.resource.status.code) result.response.statusCode = 200;
-									if(result.response.headersSent) console.trace("header sent, didn't expect it");
-									result.response.setHeader('Content-Length', Buffer.byteLength(output));
-									result.response.send(output);				
-								}
-							);
-						}
-					}
-				);
-			}else{
-				if(!result.resource.header["Content-Type"]) result.response.setHeader("Content-Type", mime.lookup(ext));
-				if(ext === ".json"){
-					if(!result.resource.status.code) result.response.statusCode = 200;
-					output = JSON.stringify(result.model);
-					result.response.setHeader('Content-Length', Buffer.byteLength(output));
-					result.response.send(output);
-				}else{
-					result.next(404);
-				}
-			}
+			if(!contentType) return result.response.send(406);
+			contentType.execute(filePath, self, result, function(output){
+				result.response.setHeader('Content-Length', Buffer.byteLength(output));
+				result.response.send(output);
+			});
 		});
 	};
 	return self;

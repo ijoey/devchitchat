@@ -27,7 +27,7 @@ module.exports = function index(app){
 				}
 				list.sort(byDate);
 				resp.represent('index/index', self, list, next);
-			});			
+			});
 		});
 	});
 	return self;

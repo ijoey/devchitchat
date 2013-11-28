@@ -48,11 +48,6 @@ nStore = nStore.extend(require('nstore/query')());
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
 var GoogleStrategy = require('passport-google').Strategy;
-  
-var members = nStore.new(process.env.DATA_PATH + '/members.db', function(err){
-	if(err) console.log(err);
-	else console.log('nStore members loaded');
-});
 var messages = nStore.new(process.env.DATA_PATH + '/messages.db', function(err){
 	if(err) console.log(err);
 	else console.log('nStore messages loaded');
@@ -85,17 +80,27 @@ var hubot = {"1":
 	, "profile":{"provider":"local", "id":1, "username":"Hubot","displayName":"Hubot"
 	, "_json":{"profile_image_url":"public/images/hubot.png"}}}
 };
-members.find({token: hubot[1].token}, function(err, doc){
-	if(Object.keys(doc).length === 0){
-		members.save(null, hubot[1], function(err){
-			if(err) console.log(err);
-		});
-	}
+var members = nStore.new(process.env.DATA_PATH + '/members.db', function(err){
+	if(err) console.log(err);
+	else console.log('nStore members loaded');
+	members.find({"token": hubot[1].token}, function(err, doc){
+		if(Object.keys(doc).length === 0){
+			console.log("didn't find hubot", hubot[1].token);
+			members.save(null, hubot[1], function(err){
+				if(err) console.log(err);
+			});
+		}
+	});
 });
 process.argv.forEach(function(value, fileName, args){
 	if(/as:/.test(value)) runAsUser = /as\:([a-zA-Z-]+)/.exec(value)[1];
 	if(/port:/.test(value)) port = /port:(\d+)/.exec(value)[1];
 });
+process.on('uncaughtException', function(err){
+    console.log('got an error: %s', err.message);
+    process.exit(1);
+});
+
 if(!port) port = 10000;
 app.response.represent = function(view, resource, model, next){
 	resource.user = this.req.user;
@@ -232,7 +237,7 @@ io.configure(function(){
 			if(err) return callback("Unauthorized", false);
 			member = (function(){for(var key in member) return member[key];})();
 			if(!member) return callback("Unauthorized", false);
-			nicknames[member.profile.username] = {username: member.profile.username, profile_image_url: member.profile._json.profile_image_url};
+			nicknames[member.profile.username] = {username: member.profile.username, token: member.token, profile_image_url: member.profile._json.profile_image_url};
 			callback(null, true);	
 		});
 	});
@@ -266,7 +271,7 @@ io.sockets.on('connection', function (socket) {
 			member = (function(){for(var key in member) return member[key];})();
 			console.log('looking for member by nickname:', nick, err);
 			if(!member) return fn(false);
-			nicknames[nick] = {username: member.profile.username, profile_image_url: member.profile._json.profile_image_url};
+			nicknames[nick] = {username: member.profile.username, token: member.token, profile_image_url: member.profile._json.profile_image_url};
 			socket.broadcast.emit('joined', nicknames[nick]);
 			io.sockets.emit('nicknames', nicknames);
 			return fn(true);
