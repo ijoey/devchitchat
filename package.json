@@ -6,11 +6,10 @@
 	  , "mime":"*"
 	  , "ejs":"*"
 	  , "socket.io":"*"
-	  , "nstore":"*"
+	  , "nedb":"*"
 	  , "passport":"*"
 	  , "passport-twitter":"*"
 	  , "passport-google":"*"
 	  , "passport-ldapauth":"*"
-      , "nstore": "git://github.com/ijoey/nstore.git#master"
   	}
 }

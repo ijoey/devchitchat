@@ -39,54 +39,34 @@ var Represent = require("./represent");
 var server = http.createServer(app);
 var io = require('socket.io').listen(server);
 var nicknames = {};
-var nStore = require('nstore');
-nStore = nStore.extend(require('nstore/query')());
+var Datastore = require('nedb');
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
-var messages = nStore.new(process.env.DATA_PATH + '/messages.db', function(err){
-	if(err) console.log(err);
-	else console.log('nStore messages loaded');
+var messages = new Datastore({filename: process.env.DATA_PATH + '/messages.db', autoload: true};
+var posts = new Datastore({filename: process.env.DATA_PATH + '/posts.db', autoload: true};
+var lastPost = new Datastore({filename: process.env.DATA_PATH + '/lastpost.db', autoload: true};
+var members = new Datastore({filename: process.env.DATA_PATH + '/members.db', autoload: true};
+
+[members, messages, posts, lastPost].forEach(function(db){
+	db.persistence.setAutocompactionInterval(1*60*60);
 });
-var posts = nStore.new(process.env.DATA_PATH + '/posts.db');
-var lastPost = nStore.new(process.env.DATA_PATH + '/lastpost.db');
-var compacterInterval = setInterval(function(){
-	if(!members.compactDatabase) return;
-	members.compactDatabase(false, function(doc, key){
-		console.log('compacting members', doc, key);
-		return doc === undefined;
-	});
-	messages.compactDatabase(false, function(doc, key){
-		console.log('compacting messages', doc, key);
-		return doc === undefined;
-	});
-	posts.compactDatabase(false, function(doc, key){
-		console.log('compacting posts', doc, key);
-		return doc === undefined;
-	});
-	lastPost.compactDatabase(false, function(doc, key){
-		console.log('compacting lastPost', doc, key);
-		return doc === undefined;
-	});
-	
-}, 1*60*60);
 
 var hubot = {"1": 
 	{"token":config.hubotToken
 	, "profile":{"provider":"local", "id":1, "username":"Hubot","displayName":"Hubot"
 	, "_json":{"profile_image_url":"public/images/hubot.png"}}}
 };
-var members = nStore.new(process.env.DATA_PATH + '/members.db', function(err){
-	if(err) console.log(err);
-	else console.log('nStore members loaded');
-	members.find({"token": hubot[1].token}, function(err, doc){
-		if(Object.keys(doc).length === 0){
-			console.log("didn't find hubot", hubot[1].token);
-			members.save(null, hubot[1], function(err){
-				if(err) console.log(err);
-			});
+function logError(err){
+	console.log(err);
+}
+(function crdeateHubotAccount(){
+	members.findOne({"token":config.hubotToken}, function(err, member){
+		if(!member){
+			members.insert(hubot[1], logError);
 		}
 	});
-});
+})();
+
 process.argv.forEach(function(value, fileName, args){
 	if(/as:/.test(value)) runAsUser = /as\:([a-zA-Z-]+)/.exec(value)[1];
 	if(/port:/.test(value)) port = /port:(\d+)/.exec(value)[1];
@@ -103,7 +83,6 @@ app.response.represent = function(view, resource, model, next){
 	Represent.execute({next: next, response: this, request: this.req, view: view, resource: resource, model: model});
 };
 app.configure(function(){
-	//app.use(express.errorHandler({ dumpExceptions: true, showStack: true }))
 	app.use(express.compress());
 	app.use("/public", express.static(Represent.themeRoot));
 	app.set("views", __dirname + "/themes/default/views");
@@ -116,14 +95,7 @@ app.configure(function(){
 	app.use(express.cookieSession({ key: config.cookie.key, secret: config.cookie.secret}));
 	app.use(passport.initialize());
 	app.use(passport.session());
-	
-	// TODO: Figure out how to get this code out of here and
-	// into a file so Twitter auth can be used in conjuction with
-	// others.
 	passport.serializeUser(function(member, done) {
-		// nStore sets it's id on an object as a property on that object. So
-		// doing a for in to get the key, in order to get the rest of the object.
-		// TODO: Make sure this is secured/signed/whatever so the hacking vectors are reduced.
 		done(null, member.token);
 	});
 	passport.deserializeUser(function(token, done) {
