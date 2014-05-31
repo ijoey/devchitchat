@@ -55,12 +55,12 @@
 		template.style.display = 'none';
 		var messageTemplate = Hogan.compile(template.innerHTML);
 		var lastTimeMessageWasSent = (new Date()).getTime();
-		var filters = [];		
-		function filterForImages(message){
+		var hooks = [];		
+		function hookForImages(message){
 			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?(&.*)?#\.png/ig, '<img src="$&" />');
 			return message;
 		}
-		function filterGithubResponse(message){
+		function hookGithubResponse(message){
 			try{
 				var users = JSON.parse(message.text);
 				if(users.what === 'github list of users'){
@@ -74,7 +74,7 @@
 			}
 			return message;
 		}
-		function filterListOfUsers(message){
+		function hookListOfUsers(message){
 			try{
 				var users = JSON.parse(message.text);
 				if(users.what === 'list of users'){
@@ -89,10 +89,10 @@
 			}
 			return message;			
 		}
-		filters.push({execute: filterGithubResponse});
-		filters.push({execute: filterListOfUsers});
-		filters.push({execute: filterForImages});
 		
+		hooks.push({execute: hookGithubResponse});
+		hooks.push({execute: hookListOfUsers});
+		hooks.push({execute: hookForImages});
 		function messageWasAdded(key, old, v, m){
 			if(!v) return;
 			if(!v.from) return;
@@ -100,8 +100,8 @@
 			var elem = template.cloneNode(true);
 			elem.setAttribute('data-from', v.from.username);
 			elem.style.display = 'block';
-			filters.forEach(function(filter){
-				v = filter.execute(v);
+			hooks.forEach(function(hook){
+				v = hook.execute(v);
 			});
 			if(lastMessage === null){
 				elem.innerHTML = messageTemplate.render(v);				

@@ -195,7 +195,6 @@ io.sockets.on('connection', function (socket) {
 		socket.broadcast.emit('message', message);
 	});
 	socket.on('message', function(msg){
-		console.log('saving message', msg);
 		messages.insert({author: nicknames[this.nickname], message: msg, time: (new Date()).getTime()}, function(err, doc){
 			if(err) console.log('error saving ', err);
 		});
