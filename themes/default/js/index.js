@@ -410,12 +410,12 @@
 		self.resize = function(e){
 			controllers.forEach(function(c){
 				if(c.resize) c.resize({h: e.target.document.documentElement.clientHeight, w: e.target.document.documentElement.clientWidth});
-			});			
+			});
 		};
 		
 		var socket;
 		if(win.member){
-			socket = io.connect();
+			socket = io.connect('', {query: 'token=' + win.member.token});
 			socket.on('connected', self.connected);
 			socket.on('left', self.left);
 			socket.on('joined', self.joined);

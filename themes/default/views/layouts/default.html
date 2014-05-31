@@ -22,22 +22,4 @@
 		</section>
 	</body>
 	<% resource.js.forEach(function(script){%><script type="text/javascript" src="/public/js/<%= script %>.js"></script><%}) %>
-	
-	<% if(process.env.NODE_ENV === "development"){%>
-	<script>
-		(function(){
-			var interval = null;
-			var on = false;
-			if(!on) return;
-			window.addEventListener('load', function refresh(e){
-				interval = setInterval(function(){
-					window.location.href = window.location.href;
-				}, 5000);
-			});
-			window.addEventListener('unload', function clear(e){
-				clearInterval(interval);
-			});
-		})();
-	</script>
-	<%}%>
 </html>

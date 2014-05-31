@@ -1,15 +1,26 @@
-{"name": "devchitchat"
-	, "version": "0.0.1"
-	, "private": false
-	, "dependencies": {
-      "express": "*"
-	  , "mime":"*"
-	  , "ejs":"*"
-	  , "socket.io":"*"
-	  , "nedb":"*"
-	  , "passport":"*"
-	  , "passport-twitter":"*"
-	  , "passport-google":"*"
-	  , "passport-ldapauth":"*"
-  	}
+{
+  "name": "devchitchat",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "express": "*",
+	"express-domain-middleware":"*",
+    "mime": "*",
+    "ejs": "*",
+    "socket.io": "*",
+    "nedb": "git://github.com/ijoey/nedb.git#master",
+    "passport": "*",
+    "passport-twitter": "*",
+    "serve-static": "*",
+    "compression": "*",
+    "cookie-parser": "*",
+    "body-parser": "*",
+    "method-override": "*",
+    "cookie-session": "*"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-develop": "^0.4.0",
+    "grunt-contrib-watch": "^0.6.1"
+  }
 }

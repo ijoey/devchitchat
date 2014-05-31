@@ -11,21 +11,14 @@ module.exports = function index(app){
 		if(a.time > b.time) return -1;
 		return 1;
 	}
-	app.get("/(index)?.:format?", function(req, resp, next){
+	app.get('/', function(req, resp, next){		
 		if(!req.user) return resp.represent("index/index", self, {session: req.session}, next);
-		var repo = new Datastore({filename: messagePath, autoload: true};
+		var repo = new Datastore({filename: messagesPath, autoload: true});
 		var today = new Date();
 		today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-		repo.find({"time": {$gte: today.getTime()}}, function(err, doc){
-				var list = [];
-				for(var key in doc){
-					var obj = doc[key];
-					if(!obj.author.username) obj.author.username = '';
-					list.push(obj);
-				}
-				list.sort(byDate);
-				resp.represent('index/index', self, list, next);
-			});
+		repo.find({"time": {$gte: today.getTime()}}, function(err, docs){
+			if(err) console.log(err);
+			resp.represent('index/index', self, docs, next);
 		});
 	});
 	return self;
