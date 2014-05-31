@@ -164,15 +164,10 @@ function ErrorMessage(error){
 	}
 }
 
-function byDate(a, b){
-	if(a.time === b.time) return 0;
-	if(a.time < b.time) return -1;
-	return 1;
-}
 function getPreviousMessages(callback){
 	var today = new Date();
 	today = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-	messages.find({"time": {$gte: today.getTime()}}, function(err, docs){
+	messages.find({"time": {$gte: today.getTime()}}).sort({time: 1}).exec(function(err, docs){
 		if(err) throw err;
 		callback(err, docs);
 	});
