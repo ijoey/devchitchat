@@ -4,7 +4,8 @@
   "private": false,
   "scripts": {
     "start": "node web/server",
-    "test": ""
+    "stop": "node web/server stop",
+    "test": "tap ./tests --stderr --tap"
   },
   "repository": "https://github.com/ijoey/devchitchat.git",
   "dependencies": {

@@ -35,11 +35,11 @@ bus.iSubscribeTo('NewChatMessageWasSent', null, {
 	}
 });
 
-module.exports = function(server){
-	io = require('socket.io')(server.server);
-	var cookieParserFunction = server.cookieParser();
-	var cookieSessionFunction = server.cookieSession({ keys: [server.config.cookie.key, ':blah:'], secret: server.config.cookie.secret});
-	Persistence = server.Persistence;
+module.exports = function(web){
+	io = require('socket.io')(web.server);
+	var cookieParserFunction = web.cookieParser();
+	var cookieSessionFunction = web.cookieSession({ keys: [web.config.cookie.key, ':blah:'], secret: web.config.cookie.secret});
+	Persistence = web.Persistence;
 	function createClient(nick, room, socket){
 		return {
 			connect: function(callback){

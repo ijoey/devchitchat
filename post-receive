@@ -1,0 +1,22 @@
+#!/bin/sh
+echo Running $BASH_SOURCE
+set | egrep GIT
+echo PWD is $PWD
+
+while read oldrev newrev ref
+do
+	if [[ $ref =~ .*/master$ ]];
+	then
+		echo "master ref received. Deploying master branch for production."
+		git --work-tree=/home/hubot/devchitchat --git-dir=/home/hubot/repo/devchitchat.git checkout -f
+	else
+		echo "Ref $ref successfully received. NOT deploying it."
+	fi
+done
+
+cd /home/hubot/devchitchat
+echo PWD is now $PWD
+cp /home/hubot/devchitchatConfig.js /home/hubot/devchitchat/config.js
+npm stop
+npm install
+npm start > server.log

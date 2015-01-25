@@ -33,7 +33,6 @@ var Moment = require('moment');
 var HttpStatus = require('../lib/httpstatus');
 var packageFile = require('../package.json');
 var busClient = require('../boundaries/inprocbus');
-
 var Commands = require('../app/commands');
 var Events = require('../app/events');
 var chatServer = null;
@@ -397,32 +396,5 @@ App.get('/message.:format?', function(req, resp, next){
 		, model: {error: null, message: "Thanks"}});
 });
 
-var os=require('os');
-var ifaces = os.networkInterfaces();
-var addresses = [];
-for(var key in ifaces){
-	if(key.indexOf('en') === -1) continue;
-	var iface = ifaces[key];
-	var address = iface.reduce(function(previous, current, index, ary){
-		return current.address;
-	});
-	addresses.push(address);
-}
-var localhost = addresses.reduce(function(previous, current, index, ary){
-	return current === null ? previous : current;
-});
 
-var server = App.listen(config.port, function(){
-	console.log('HttpServer listening on http://%s:%s', localhost, config.port);
-});
-
-var chatServer = require('./chat')({
-	server: server
-	, config: config
-	, cookieParser: CookieParser
-	, cookieSession: CookieSession
-	, bus: busClient
-	, Persistence: Persistence
-});
-
-exports.server = {http: server, chat: chatServer};
+module.exports = {http: App, bus: busClient, persistence: Persistence, config: config};
