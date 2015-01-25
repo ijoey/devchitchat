@@ -85,9 +85,8 @@ aside.nav button{
 	z-index: 3;
 	width: 50px;
 	height: 50px;
-	background: rgba(255, 122, 5, 1);
 	border: 0;
-	border-radius: 20%;
+	border-radius: 5%;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
 	font-size: 2em;
@@ -261,8 +260,8 @@ form .file{
 .nav img{
 	width: 75px;
 }
-.view{
-	
+.roster{
+	color: white;
 }
 #messagesView{
 	box-shadow: 0 0 46px 0 rgba(0,0,0,2.5);
@@ -274,10 +273,20 @@ form .file{
 		width: 1000px;
 	}
 }
+@media (max-width: 768px){
+	#comment {
+		width: 100%;
+	}
+	
+}
 .container{
 	padding:0;
 }
-#comment{position: fixed; z-index: 5; background:#333; }
+#comment{
+	position: fixed;
+	z-index: 5;
+	background:#333;
+}
 #comment #title_bar{
 	color:rgb(255, 217, 155);
 	font-size: 20px;
