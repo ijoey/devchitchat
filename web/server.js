@@ -416,7 +416,7 @@ var server = App.listen(config.port, function(){
 	console.log('HttpServer listening on http://%s:%s', localhost, config.port);
 });
 
-var chatServer = require('../boundaries/chat')({
+var chatServer = require('./chat')({
 	server: server
 	, config: config
 	, cookieParser: CookieParser
