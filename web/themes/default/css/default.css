@@ -119,11 +119,7 @@ aside.nav .glyphicon-power{
 .header .home span{
 	display: none;
 }
-.logo{
-	background-image: url("/public/images/apple-touch-icon-ipad.png");
-	background-repeat: no-repeat;
-	background-position: center;
-}
+
 .glyphicon-power:before {
   content: "\e017";
 }
