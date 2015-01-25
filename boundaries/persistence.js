@@ -1,6 +1,6 @@
 var Datastore = require('nedb');
-var Member = require('../profile/entities/member');
-var Message = require('../profile/entities/message');
+var Member = require('../app/entities/member');
+var Message = require('../app/entities/message');
 var config = null;
 
 function replaceLastMember(id, member){

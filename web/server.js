@@ -24,7 +24,7 @@ var Datastore = require('nedb');
 var membersDbFilePath = null;
 var Signer = require('jws');
 var Persistence = null;
-var Member = require('../profile/entities/member');
+var Member = require('../app/entities/member');
 var uploadsFolder = rootPath + '/uploads/';
 var imagesFolder = rootPath + '/uploads/images/';
 var members = [];
@@ -34,8 +34,8 @@ var HttpStatus = require('../lib/httpstatus');
 var packageFile = require('../package.json');
 var busClient = require('../boundaries/inprocbus');
 
-var Commands = require('../profile/commands');
-var Events = require('../profile/events');
+var Commands = require('../app/commands');
+var Events = require('../app/events');
 var chatServer = null;
 
 function Resource(obj){
