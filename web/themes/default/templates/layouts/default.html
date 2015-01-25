@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+	<head>
+	    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+		<title><%- config.site.title %><%- resource.title ? ": " + resource.title : null %></title>
+		<meta name="description" content="<%= resource.description %>" />
+		<meta name="author" content="<%= resource.author %>" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="translucent black" />
+		<meta name="apple-mobile-web-app-title" content="<%- config.site.title %>">
+		<link rel="icon" type="image/png" href="/public/images/apple-touch-icon.png" />
+		<link rel="apple-touch-startup-image" href="/public/images/startup.png" />
+		<link rel="apple-touch-icon" href="/public/images/apple-touch-icon.png" />
+		<link rel="apple-touch-icon" href="/public/images/apple-touch-icon-ipad.png" sizes="72x72" />
+		<link rel="apple-touch-icon" href="/public/images/apple-touch-icon-iphone4.png" sizes="114x114" />
+		<link rel="alternate" type="application/rss+xml" title="<%- config.site.title %>" href="/index.rss">
+		<link type="text/plain" rel="author" href="/humans.txt" />
+		<link rel="stylesheet" type="text/css" href="/public/bootstrap/css/bootstrap.min.css" />
+		<link rel="stylesheet" type="text/css" href="/public/css/default.css" />
+		<% resource.css.forEach(function(style){%><link rel="stylesheet" type="text/css" href="/public/css/<%- style %>.css" /><%}) %>
+	</head>
+	<body>
+		<section id="main" class="container-fluid" role="main">
+			<%- output %>
+		</section>
+		<aside class="nav">
+			<button id="menuButton" class="menu glyphicon glyphicon-align-justify"><span>Menu</span></button>
+			<nav id="menu">
+				<a class="logo home" href="/" name="home"><span>Home</span></a>
+				<div id="rosterView" class="roster" style="display: none;">
+					<ul>
+						<li>
+							<figure class="avatar">
+								<img data-src="{{avatar}}" class="img-circle" />
+								<figcaption>{{displayName}}</figcaption>
+							</figure>
+						</li>
+					</ul>
+				</div>
+				<% if(!request.isAuthenticated()){%>
+				<a class="glyphicon glyphicon-power off" href="/login" name="signin"><span>Sign in</span></a>
+				<%}else{%>
+				<a class="glyphicon glyphicon-power on" href="/logout" title="Logout of this site"><span>Logout</span></a>					
+				<%}%>
+			</nav>
+		</aside>
+		<script src="/public/js/mvc.js"></script>
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="/public/js/menu.js"></script>
+		<script src="/public/js/hogan-2.0.0.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<% resource.js.forEach(function(script){%><script type="text/javascript" src="/public/js/<%= script %>.js"></script><%}) %>
+	</body>
+</html>

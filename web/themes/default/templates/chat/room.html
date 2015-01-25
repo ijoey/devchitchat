@@ -1,0 +1,66 @@
+<script>
+var member = <%- JSON.stringify(request.user)%>;
+</script>
+<form method="get" action="/logout" style="display: none;">
+	<fieldset>
+		<button type="submit">Sign out</button>
+	</fieldset>
+</form>
+
+<div class="container">
+	<div id="messagesView" class="centered content view">
+		<div id="comment" class="comment container">
+			<div id="title_bar"><%= config.site.title %></div>
+			<form>
+				<textarea name="message"></textarea>
+				<button type="submit">Send</button>
+			</form>
+		</div>
+		<ol class="discussion">
+			<li class="other">
+				<figure class="avatar">
+					<img class="img-circle" data-src="{{from.avatar}}" />
+					<figcaption>{{from.displayName}}</figcaption>
+				</figure>
+				<div class="message">
+					<div class="text">{{{text}}}</div>
+					<time datetime="{{time}}">{{time}}</time>
+				</div>
+			</li>
+			<% 
+				model = model ? model : [];
+				var current = model.length > 0 ? model.shift() : {from: {username: null}};
+				var i = 0;
+				var message = null;
+				while(message = model.shift()){
+					if(i === 0){
+			%>
+			<li class="sent">
+				<time datetime="<%= message.w3cFormat(current.time) %>"><%= current.humanFriendlyDate(current.time) %></time>
+			</li>
+			<li class="<%= current.from.username === request.user.username ? 'self' : 'other'%>">
+				<figure class="avatar">
+					<img class="img-circle" data-src="<%= current.from.avatar %>" src="<%= current.from.avatar %>" />
+					<figcaption><%= current.from.displayName %></figcaption>
+				</figure>
+			<%
+					}
+			%>
+				<div class="message" data-count="<%= i%>">
+					<div class="text"><%= current.text %></div>
+					<time datetime="<%= current.w3cFormat(message.time) %>" class="today"><%= current.humanFriendlyDate(current.time) %></time>
+				</div>
+			<%
+					i++;
+					if(current.from.username !== message.from.username){
+						i = 0;
+			%>
+			</li>
+			<%
+					}
+					current = message;
+				}
+			%>
+		</ol>
+	</div>
+</div>
