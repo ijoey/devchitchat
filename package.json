@@ -15,7 +15,6 @@
     "cookie-session": "*",
     "ejs": "*",
     "express": "*",
-    "express-domain-middleware": "*",
     "jws": "*",
     "method-override": "*",
     "mime": "*",
