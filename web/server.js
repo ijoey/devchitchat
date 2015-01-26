@@ -31,20 +31,22 @@ if(shouldStop){
 	var CookieSession = require('cookie-session');
 	for(var key in ifaces){
 		var iface = ifaces[key];
-		if(iface.family !== 'IPv4'){
-			continue;
-		}
-		if(iface.internal){
-			continue;
-		}
-		var address = iface.reduce(function(previous, current, index, ary){
-			return current.address;
+		var address = iface.filter(function(element, index, arry){
+			return !element.internal && element.family === 'IPv4';
 		});
-		addresses.push(address);
+		if(address.length === 0){
+			continue;
+		}
+		address.forEach(function(a){
+			addresses.push(a);
+		});
 	}
-	var localhost = addresses.reduce(function(previous, current, index, ary){
-		return current === null ? previous : current;
+	var localhost = addresses.map(function(current, index, ary){
+		return current.address;
+	}).reduce(function(previous, current, index, ary){
+		return current;
 	});
+	console.log(localhost);
 	stopBus.start();
 	stopBus.iHandle('Stop', {
 		handle: function(command){
