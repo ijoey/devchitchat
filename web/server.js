@@ -28,10 +28,15 @@ if(shouldStop){
 	var ifaces = os.networkInterfaces();
 	var addresses = [];
 	var CookieParser = require('cookie-parser');
-	var CookieSession = require('cookie-session');	
+	var CookieSession = require('cookie-session');
 	for(var key in ifaces){
-		if(key.indexOf('en') === -1) continue;
 		var iface = ifaces[key];
+		if(iface.family !== 'IPv4'){
+			continue;
+		}
+		if(iface.internal){
+			continue;
+		}
 		var address = iface.reduce(function(previous, current, index, ary){
 			return current.address;
 		});
