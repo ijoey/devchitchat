@@ -1,6 +1,6 @@
 var Bus = require('../boundaries/bus');
 var shouldStop = process.argv.length > 2 ? process.argv[2] === 'stop' : false;
-var stoppingPort = 8127;
+var stoppingPort = 8128;
 if(shouldStop){
 	var client = new Bus.Client();
 	function Stop(message){
