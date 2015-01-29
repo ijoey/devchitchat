@@ -10,7 +10,7 @@ var member = <%- JSON.stringify(request.user)%>;
 <div class="container">
 	<div id="messagesView" class="centered content view">
 		<div id="comment" class="comment container">
-			<div id="title_bar"><%= config.site.title %></div>
+			<div id="title_bar"><a href="/" title="devchitchat index"><%= config.site.title %></a></div>
 			<form>
 				<textarea name="message"></textarea>
 				<button type="submit">Send</button>
