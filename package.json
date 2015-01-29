@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node web/server",
     "stop": "node web/server stop",
+    "dev": "nodemon web/server.js",
     "test": "tap ./tests --stderr --tap"
   },
   "repository": "https://github.com/ijoey/devchitchat.git",
@@ -14,6 +15,7 @@
     "compression": "*",
     "cookie-parser": "*",
     "cookie-session": "*",
+    "debug": "^2.1.1",
     "ejs": "*",
     "express": "*",
     "jws": "*",

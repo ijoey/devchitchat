@@ -8,6 +8,7 @@ var nicknames = {};
 var clients = {};
 var io = null;
 var Persistence = null;
+var debug = require('debug')('chat');
 bus.start();
 bus.iHandle('SendNewChatMessage', {
 	handle: function(command){
@@ -50,7 +51,7 @@ module.exports = function(web){
 				callback(m);
 			},
 			disconnect: function(message){
-				console.log('disconnected', message);
+				debug('disconnected', message);
 			},
 			join: function(room, callback){
 				callback(nick, nick + " joined the room");
@@ -85,7 +86,7 @@ module.exports = function(web){
 	});
 	io.on('connection', function (socket) {
 		var room = "#" + getRoomFromReferrer(socket);
-		console.log('on connection');
+		debug('on connection');
 		socket.on('message', function (msg) {
 			var room = "#" + getRoomFromReferrer(socket);
 			var message = {
@@ -110,7 +111,7 @@ module.exports = function(web){
 			clients[socket.id].disconnect("peace out!!");
 		});
 		socket.on('disconnect', function () {
-			console.log('disconnecting', arguments);
+			debug('disconnecting', arguments);
 			var room = "#" + getRoomFromReferrer(socket);
 			clients[socket.id].disconnect("peace out!!");
 			delete clients[socket.id];
@@ -124,7 +125,7 @@ module.exports = function(web){
             clients[socket.id].join(room, function(who, message){});
         });
 		socket.emit('connected', nicknames);
-		console.log('connecting', socket.request._query.username);
+		debug('connecting', socket.request._query.username);
 	});
 	return io;
 };

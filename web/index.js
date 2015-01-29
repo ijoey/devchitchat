@@ -36,7 +36,7 @@ var busClient = require('../boundaries/inprocbus');
 var Commands = require('../app/commands');
 var Events = require('../app/events');
 var chatServer = null;
-
+var debug = require('debug')('httpServer');
 function Resource(obj){
 	this.layout = 'default';
 	this.title = "devchitchat";
@@ -65,7 +65,7 @@ busClient.iHandle('AddMember', {
 			if(!err){
 				busClient.publish(new Events.MemberWasCreated(command.body));
 			}else{
-				console.log('error from AddMember handle:', err);
+				debug('error from AddMember handle:', err);
 			}
 		});
 	}
@@ -77,7 +77,7 @@ busClient.iHandle('UpdateMember', {
 			if(!err){
 				busClient.publish(new Events.MemberWasUpdated(command.body));
 			}else{
-				console.log('error from UpdateMember handle:', err);
+				debug('error from UpdateMember handle:', err);
 			}
 		});
 	}
@@ -88,7 +88,7 @@ busClient.iHandle('DeleteMember', {
 			if(!err){
 				busClient.publish(new Events.MemberWasDeleted(command.body));
 			}else{
-				console.log('error from DeleteMember: ', err);
+				debug('error from DeleteMember: ', err);
 			}
 		});
 	}
@@ -99,7 +99,7 @@ busClient.iHandle('ChangeAvatar', {
 			if(!err){
 				busClient.publish(new Events.AvatarWasChanged(command.body));
 			}else{
-				console.log('error from ChangeAvatar: ', err);
+				debug('error from ChangeAvatar: ', err);
 			}
 		});
 	}
@@ -110,7 +110,7 @@ busClient.iHandle('ChangeBackground', {
 			if(!err){
 				busClient.publish(new Events.BackgroundWasChanged(command.body));
 			}else{
-				console.log('error from ChangeBackground: ', err);
+				debug('error from ChangeBackground: ', err);
 			}
 		});
 	}
@@ -175,7 +175,7 @@ Passport.deserializeUser(function deserializeUser(token, done) {
 	if(!decodedSignature) return done(null, null);
 	Persistence.member.findOne({username: decodedSignature.payload}, function(err, member) {
 		if(err){
-			console.log(err);
+			debug(err);
 		}
 		done(err, member);
 	});
@@ -199,8 +199,14 @@ Passport.use(new GithubStrategy(config.passport.github, function(accessToken, re
 			emails: profile.emails,
 			avatar: profile._json.avatar_url
 		});
-		busClient.send(new Commands.AddMember(member));
-		done(null, member);
+		Persistence.newMemberWasSubmitted(member, function(err, doc){
+			if(!err){
+				busClient.publish(new Events.MemberWasCreated(doc));
+			}else{
+				debug('error from AddMember handle:', err);
+			}
+			done(err, member);
+		});
 	});
 }));
 Passport.use(new TwitterStrategy(config.passport.twitter, function(accessToken, refreshToken, profile, done) {
@@ -221,8 +227,14 @@ Passport.use(new TwitterStrategy(config.passport.twitter, function(accessToken, 
 			emails: profile.emails,
 			avatar: profile._json.profile_image_url_https
 		});
-		busClient.send(new Commands.AddMember(member));
-		done(null, member);
+		Persistence.newMemberWasSubmitted(member, function(err, doc){
+			if(!err){
+				busClient.publish(new Events.MemberWasCreated(doc));
+			}else{
+				debug('error from AddMember handle:', err);
+			}
+			done(err, member);
+		});
 	});
 }));
 
@@ -246,19 +258,42 @@ App.get('/logout.:format?', function(req, resp, next){
 
 App.get('/login/github.:format?', Passport.authenticate('github'));
 App.get('/login/twitter.:format?', Passport.authenticate('twitter'));
-App.get('/github/callback', Passport.authenticate('github', {successRedirect: '/welcome', failureRedirect: '/login'}));
-App.get('/twitter/callback', Passport.authenticate('twitter', {successRedirect: '/welcome', failureRedirect: '/login'}));
+App.get('/github/callback', Passport.authenticate('github', {successRedirect: '/welcome', failureRedirect: '/'}));
+App.get('/twitter/callback', function(req, res, next){
+	Passport.authenticate('twitter', function(err, user, info){
+		if(err){
+			return next(err);
+		}
+		if(!user){
+			return res.redirect('/');
+		}
+		req.logIn(user, function(err){
+			if(err){
+				return next(err);
+			}
+			return res.redirect('/welcome');
+		})
+	})(req, res, next);
+});
 App.get('/welcome.:format?', function(req, resp, next){
 	resp.represent({
 		view: 'chat/room',
 		resource: new Resource({title: "Welcome", js:['chat'], css: ['chatbubbles']}),
 		model: []});
 });
+
+App.get(['/', '/index.:format?'], function(req, resp, next){
+	resp.represent({
+		view: 'index/index',
+		resource: new Resource({title: "devchitchat"}),
+		model: {}});
+});
+
 App.delete("/members.:format?", function(req, resp, next){
 	var id = req.body._id;
 	Persistence.member.findOne({_id: id}, function(err, member){
 		if(err){
-			console.log(err);
+			debug(err);
 		}
 		if(member && member._id !== null){
 			busClient.send(new Commands.DeleteMember(member));
@@ -270,7 +305,7 @@ App.get("/members.:format?", function(req, resp, next){
 	var docs = [];
 	Persistence.member.find({}, {public: -1}, function(err, docs){
 		if(err){
-			console.log(err);
+			debug(err);
 			next(500);
 		}
 		resp.represent({view: 'member/index'
@@ -333,7 +368,7 @@ App.post('/member/:_id/backgrounds.:format?', function(req, resp, next){
 		Fs.rename(rootPath + '/' + file.path, folder + '/' + file.originalname
 			, function(err){
 				if(err){
-					console.log(err);
+					debug(err);
 				}
 				var newBackground = '/uploads/' + req.user.username + '/' + file.originalname;
 				busClient.send(new Commands.ChangeBackground({id: req.user._id, background: newBackground}));
@@ -353,7 +388,7 @@ App.post('/member/:_id/avatars.:format?', function(req, resp, next){
 		Fs.rename(rootPath + '/' + file.path, folder + '/' + file.originalname
 			, function(err){
 				if(err){
-					console.log(err);
+					debug(err);
 				}
 				var newAvatar = '/uploads/' + req.user.username + '/' + file.originalname;
 				busClient.send(new Commands.ChangeAvatar({id: req.user._id, avatar: newAvatar}));
@@ -370,21 +405,6 @@ App.get("/chat/:room.:format?", function(req, resp, next){
 	Persistence.message.findToday(room, function(err, doc){
 		resp.represent({view: 'chat/room', resource: new Resource({js: ['chat'], css: ['chatbubbles']}), model: doc});
 	});
-});
-App.get("/deployment.:format?", function(req, resp, next){
-	resp.represent({
-		view: 'deployment/index'
-		, resource: new Resource({})
-		, model: {error: null, message: null}});
-});
-
-App.post('/deployment.:format?', function(req, resp, next){
-	var message = Util.format("@all %s:%s deployed to %s", req.body.app, req.body.version, req.body.env);
-    chatServer.say(message);
-	resp.represent({
-		view: 'deployment/index'
-		, resource: new Resource({})
-		, model: {error: null, message: "Thanks"}});
 });
 
 App.get('/message.:format?', function(req, resp, next){
