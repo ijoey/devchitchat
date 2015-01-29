@@ -370,7 +370,7 @@
 			console.log(email);
 		};
 		self.requestNotificationPermission = function(){
-			if(!Notification){
+			if(!'Notification' in window){
 				isNotificationsOn = false;
 				return isNotificationsOn;
 			}
