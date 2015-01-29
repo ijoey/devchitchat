@@ -370,6 +370,10 @@
 			console.log(email);
 		};
 		self.requestNotificationPermission = function(){
+			if(!Notification){
+				isNotificationsOn = false;
+				return isNotificationsOn;
+			}
 			isNotificationsOn = Notification.permission === Permissions.GRANTED;
 			if(Notification.permission !== Permissions.DENIED && !isNotificationsOn){
 				Notification.requestPermission(function(p){
