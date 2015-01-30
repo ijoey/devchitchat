@@ -328,7 +328,7 @@
 			if(typeof message === 'string'){
 				message = {text: message, from: {name: 'FromSomewhereElse', username: 'chat server', avatar: '/public/images/penguins.jpg'}};
 			}
-			if(isNotificationsOn){
+			if(isNotificationsOn && message.from.username !== win.member.username){
 				var n = new Notification(message.from.username, {body: message.text, tag: "notifyUser"});
 			}
 			views.forEach(function(v){
