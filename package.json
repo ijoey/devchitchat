@@ -3,7 +3,7 @@
   "version": "0.0.10",
   "private": false,
   "scripts": {
-    "start": "DEBUG=* node web/server",
+    "start": "node web/server",
     "stop": "node web/server stop",
     "dev": "nodemon web/server.js",
     "test": "tap ./tests --stderr --tap"

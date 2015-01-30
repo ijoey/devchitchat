@@ -63,6 +63,9 @@ module.exports = function(web){
 	}
 	
 	function getRoomFromReferrer(socket){
+		if(!socket.handshake.headers.referer){
+			return null;
+		}
 		return socket.handshake.headers.referer.split('/').pop();
 	}
 	
