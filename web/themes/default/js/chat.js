@@ -26,7 +26,7 @@
 				}
 				this.model.text = "";
 			}
-			, keyup: function(e){
+			, keydown: function(e){
 				if(!e.shiftKey && e.keyCode === 13){
 					this.button.click();
 				}else{
@@ -48,7 +48,7 @@
 			self.field.value = v;
 		}
 
-		self.field.addEventListener("keyup", self, true);
+		self.field.addEventListener("keydown", self, true);
 		self.form.addEventListener('submit', self, true);
 		self.field.addEventListener('focus', self, true);
 		self.model.subscribe("text", textDidChange);
