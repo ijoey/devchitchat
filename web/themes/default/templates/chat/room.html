@@ -15,7 +15,7 @@ var member = <%- JSON.stringify(request.user)%>;
 				<a href="/" title="devchitchat index"><%= config.site.title %></a>
 			</header>
 			<form>
-				<textarea name="message"></textarea>
+				<input type="text" name="message" />
 				<button type="submit">Send</button>
 			</form>
 		</div>

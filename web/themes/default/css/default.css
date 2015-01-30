@@ -331,10 +331,11 @@ form .file{
 	padding: 0;
 	margin: 0;
 }
-#comment textarea{
+#comment input{
 	background: rgb(255, 217, 155);
 	font-size: 1.5em;
 	height: 2em;
+	width: 100%;
 }
 
 .discussion{
