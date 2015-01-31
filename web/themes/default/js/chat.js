@@ -15,20 +15,22 @@
 				//self.top = viewportSize.h - 40;
 			}
 			, handleEvent: function(e){
-				if(this[e.type]) this[e.type](e);
+				if(this[e.type]){
+					this[e.type](e);
+				}
 			}
 			, submit: function(e){
 				e.preventDefault();
 				this.model.from = this.model.to;
 				this.model.time = (new Date()).getTime();
+				this.model.text = this.field.value;
 				if(this.delegate.messageWasSubmitted) {
 					this.delegate.messageWasSubmitted(model);
 				}
-				this.model.text = "";
+				this.model.text = '';
 			}
 			, keydown: function(e){
-				this.model.text = e.target.value;				
-				if(!e.shiftKey && e.keyCode === 13){
+				if(e.keyCode === 13){
 					this.button.click();
 				}
 			}
@@ -49,7 +51,6 @@
 
 		self.field.addEventListener("keydown", self, true);
 		self.form.addEventListener('submit', self, true);
-		self.field.addEventListener('focus', self, true);
 		self.model.subscribe("text", textDidChange);
 		self.field.focus();
 		return self;
