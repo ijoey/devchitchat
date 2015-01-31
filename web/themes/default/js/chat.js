@@ -27,14 +27,13 @@
 				this.model.text = "";
 			}
 			, keydown: function(e){
+				this.model.text = e.target.value;				
 				if(!e.shiftKey && e.keyCode === 13){
 					this.button.click();
-				}else{
-					this.model.text = e.target.value;				
 				}
 			}
 			, release: function(){
-				this.field.removeEventListener('keyup', this);
+				this.field.removeEventListener('keydown', this);
 				this.form.removeEventListener('submit', this);
 			}
 		};
