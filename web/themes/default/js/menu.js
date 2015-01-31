@@ -44,7 +44,9 @@
 				this.delegate.shouldOpen(this);
 			}
 			, handleEvent: function(e){
-				if(this[e.type]) this[e.type](e);
+				if(this[e.type]){
+					this[e.type](e);
+				}
 			}
 			, click: function(e){
 				this.toggle();

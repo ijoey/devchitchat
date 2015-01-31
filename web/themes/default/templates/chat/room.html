@@ -63,3 +63,22 @@ var member = <%- JSON.stringify(request.user)%>;
 		</ol>
 	</div>
 </div>
+<aside class="nav">
+	<nav id="menu">
+		<div id="rosterView" class="roster" style="display: none;">
+			<ul>
+				<li>
+					<figure class="avatar">
+						<img data-src="{{avatar}}" class="img-circle" />
+						<figcaption>{{displayName}}</figcaption>
+					</figure>
+				</li>
+			</ul>
+		</div>
+		<% if(!request.isAuthenticated()){%>
+		<a class="glyphicon glyphicon-power off" href="/login" name="signin"><span>Sign in</span></a>
+		<%}else{%>
+		<a class="glyphicon glyphicon-power on" href="/logout" title="Logout of this site"><span>Logout</span></a>					
+		<%}%>
+	</nav>
+</aside>

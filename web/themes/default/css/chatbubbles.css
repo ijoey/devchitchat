@@ -90,9 +90,6 @@
 .discussion .message .text{
 	padding: 5px;
 }
-.discussion .message div img{
-	max-width: 100%;
-}
 
 .discussion .self .message:nth-child(2):before{
 	content:"";
@@ -161,14 +158,7 @@
 .comment button{
 	display: none;
 }
-.comment textarea{
-	width: 100%;
-}
-.comment legend{
-	display: none;
-}
 
-.clear {clear: both}
 .discussion .self .message{
 	position:relative;
 	padding: 5px 5px;

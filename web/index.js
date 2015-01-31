@@ -278,14 +278,21 @@ App.get('/twitter/callback', function(req, res, next){
 App.get('/welcome.:format?', function(req, resp, next){
 	resp.represent({
 		view: 'chat/room',
-		resource: new Resource({title: "Welcome", js:['chat'], css: ['chatbubbles']}),
-		model: []});
+		resource: new Resource({title: "Welcome", js:[
+			'https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js',
+			'/socket.io/socket.io.js',
+			'/public/js/hogan-2.0.0.min.js',
+			'/public/js/mvc.js',
+			'/public/js/chat.js',
+			'/public/js/menu.js'
+		], css: ['chatbubbles']}),
+		model: []});		
 });
 
 App.get(['/', '/index.:format?'], function(req, resp, next){
 	resp.represent({
 		view: 'index/index',
-		resource: new Resource({title: "devchitchat"}),
+		resource: new Resource({title: "devchitchat", css: ['index']}),
 		model: {}});
 });
 

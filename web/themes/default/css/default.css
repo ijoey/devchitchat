@@ -51,41 +51,6 @@ h1,h2,h3,h4,h5,h6
 	margin-right: 0;
 	margin-left: 0;
 }
-.hero{
-	color: rgb(48,22,0);
-}
-.hero h1{
-	text-align: center;
-	font-size: 5em;
-}
-.hero p{
-	text-align: center;
-	font-size: 2em;
-}
-.identify{
-	width: 100%;
-	height: 100%;
-	position: fixed;
-	top: 15em;
-	left: 0;
-	right: 0;
-	color: rgb(48,22,0);
-}
-.identify h2{
-	font-family: 'Pacifico', cursive;
-	font-size: 3em;
-	margin-left: 1em;
-	text-align: center;
-}
-.identify .buttons{
-	text-align: center;
-}
-.identify .buttons button{
-	font-size: 3em;
-}
-.identify .buttons form{
-	margin-bottom: 1em;
-}
 .comment legend{
 	border-bottom: 0;
 }
@@ -115,54 +80,29 @@ aside.nav nav a:hover{
 aside.nav nav a span{
 	display: none;
 }
-aside.nav button{
+#menuButton{
 	position: fixed;
-	top: 50%;
+	top: 2px;
 	left: -15px;
-	z-index: 3;
-	width: 50px;
-	height: 50px;
+	z-index: 6;
+	width: 37px;
+	height: 37px;
 	border: 0;
-	border-radius: 5%;
+	border-radius: 50%;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
-	font-size: 2em;
-	line-height: 1.6em;
+	font-size: 0;
+	line-height: 0;
 }
 aside.nav button span{
 	display: block;
 	text-indent: -1000px;
 }
-aside.nav .members{
-	background-image: url("/public/images/members.png");
-	background-repeat: no-repeat;
-	background-position: center;
-	position: absolute;
-	top: 40%;
-}
+
 aside.nav .glyphicon-power{
 	position: absolute;
 	top: 90%;
 	left: 0;
-}
-#header{
-	position: fixed;
-	color:rgb(255, 217, 155);
-	font-size: 20px;
-	font-weight: bold;
-	text-align: right;
-	padding-right: 15px;
-}
-.header .home{
-	width: 57px;
-	height: 57px;
-	display: block;
-	position: fixed;
-	top: 1em;
-	left: 1em;
-}
-.header .home span{
-	display: none;
 }
 
 .glyphicon-power:before {
@@ -241,25 +181,6 @@ body{
 	margin-left: 100px;
 	padding: 10px;
 }
-
-.pages{
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	width: 100%;
-}
-.pages header{
-	width: 100%;
-}
-.pages header *{
-	text-align: center;
-}
-.pages article{
-	width: 100%;
-	height: 100%;
-}
 .member .avatar{
 	width: 100px;
 	height: 100px;
@@ -267,27 +188,6 @@ body{
 
 form .file{
 	height: 100px;
-}
-.signin .input-group{
-	margin-bottom: -1px;
-}
-.signin .input-group .form-control{
-	border-radius: 0;
-}
-.signin .input-group{
-	width: 50%;
-	margin-left: 25%;
-}
-.signin .input-group-addon{
-	border-radius: 0;
-}
-.signin .btn-primary{
-	position: absolute;
-	right: 50px;
-	top: 225px;
-}
-.carousel-control{
-	z-index: 3;
 }
 .right{
 	position: absolute;
@@ -307,7 +207,6 @@ form .file{
 #messagesView{
 	box-shadow: 0 0 46px 0 rgba(0,0,0,2.5);
 	background: #fff;
-	min-height: 1000px;
 }
 @media (min-width: 1200px){
 	.container {
@@ -318,7 +217,9 @@ form .file{
 	#comment {
 		width: 100%;
 	}
-	
+	#header{
+		display: none;
+	}	
 }
 .container{
 	padding:0;
@@ -327,7 +228,6 @@ form .file{
 	position: fixed;
 	z-index: 5;
 	background:#333;
-	top: 2em;
 }
 #comment form{
 	padding: 0;
@@ -338,6 +238,9 @@ form .file{
 	font-size: 1.5em;
 	height: 2em;
 	width: 100%;
+	border: 2px;
+	padding: 0 0 0 .5em;
+	margin: 0;
 }
 
 .discussion{

@@ -21,39 +21,18 @@
 		<% resource.css.forEach(function(style){%><link rel="stylesheet" type="text/css" href="/public/css/<%- style %>.css" /><%}) %>
 	</head>
 	<body>
-		<header id="header" role="header" class="container">
-			<a href="https://github.com/ijoey/devchitchat/issues" title="devchitchat issues" class="fa">Issues</a>
-			<a href="https://github.com/ijoey/devchitchat" title="devchitchat repo" class="fa fa-github">Code</a>
-			<a href="/" title="devchitchat index"><%= config.site.title %></a>
-		</header>
+		<button id="menuButton" class="menu glyphicon glyphicon-align-justify"><span>Menu</span></button>
 		<section id="main" class="container-fluid" role="main">
+			<header id="header" role="header" class="container">
+				<a href="https://github.com/ijoey/devchitchat/issues" title="devchitchat issues" class="fa">Issues</a>
+				<a href="https://github.com/ijoey/devchitchat" title="devchitchat repo" class="fa fa-github">Code</a>
+				<a href="/" title="devchitchat index"><%= config.site.title %></a>
+				<% if(request.isAuthenticated()){%>
+				<a href="/welcome" title="Welcome room">Welcome</a>
+				<%}%>
+			</header>
 			<%- output %>
 		</section>
-		<aside class="nav">
-			<button id="menuButton" class="menu glyphicon glyphicon-align-justify"><span>Menu</span></button>
-			<nav id="menu">
-				<div id="rosterView" class="roster" style="display: none;">
-					<ul>
-						<li>
-							<figure class="avatar">
-								<img data-src="{{avatar}}" class="img-circle" />
-								<figcaption>{{displayName}}</figcaption>
-							</figure>
-						</li>
-					</ul>
-				</div>
-				<% if(!request.isAuthenticated()){%>
-				<a class="glyphicon glyphicon-power off" href="/login" name="signin"><span>Sign in</span></a>
-				<%}else{%>
-				<a class="glyphicon glyphicon-power on" href="/logout" title="Logout of this site"><span>Logout</span></a>					
-				<%}%>
-			</nav>
-		</aside>
-		<script src="/public/js/mvc.js"></script>
-	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-		<script src="/public/js/menu.js"></script>
-		<script src="/public/js/hogan-2.0.0.min.js"></script>
-		<script src="/socket.io/socket.io.js"></script>
-		<% resource.js.forEach(function(script){%><script type="text/javascript" src="/public/js/<%= script %>.js"></script><%}) %>
+		<% resource.js.forEach(function(script){%><script type="text/javascript" src="<%= script %>"></script><%}) %>
 	</body>
 </html>
