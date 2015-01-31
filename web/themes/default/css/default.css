@@ -145,6 +145,14 @@ aside.nav .glyphicon-power{
 	top: 90%;
 	left: 0;
 }
+#header{
+	position: fixed;
+	color:rgb(255, 217, 155);
+	font-size: 20px;
+	font-weight: bold;
+	text-align: right;
+	padding-right: 15px;
+}
 .header .home{
 	width: 57px;
 	height: 57px;
@@ -319,13 +327,7 @@ form .file{
 	position: fixed;
 	z-index: 5;
 	background:#333;
-}
-#comment #title_bar{
-	color:rgb(255, 217, 155);
-	font-size: 20px;
-	font-weight: bold;
-	text-align: right;
-	padding-right: 15px;
+	top: 2em;
 }
 #comment form{
 	padding: 0;

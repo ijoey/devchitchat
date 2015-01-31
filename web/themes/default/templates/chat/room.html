@@ -10,10 +10,6 @@ var member = <%- JSON.stringify(request.user)%>;
 <div class="container">
 	<div id="messagesView" class="centered content view">
 		<div id="comment" class="comment container">
-			<header id="title_bar">
-				<a href="https://github.com/ijoey/devchitchat" title="devchitchat github repo" class="fa fa-github">Code</a>
-				<a href="/" title="devchitchat index"><%= config.site.title %></a>
-			</header>
 			<form>
 				<input type="text" name="message" />
 				<button type="submit">Send</button>

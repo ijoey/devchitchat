@@ -21,6 +21,11 @@
 		<% resource.css.forEach(function(style){%><link rel="stylesheet" type="text/css" href="/public/css/<%- style %>.css" /><%}) %>
 	</head>
 	<body>
+		<header id="header" role="header" class="container">
+			<a href="https://github.com/ijoey/devchitchat/issues" title="devchitchat issues" class="fa">Issues</a>
+			<a href="https://github.com/ijoey/devchitchat" title="devchitchat repo" class="fa fa-github">Code</a>
+			<a href="/" title="devchitchat index"><%= config.site.title %></a>
+		</header>
 		<section id="main" class="container-fluid" role="main">
 			<%- output %>
 		</section>
