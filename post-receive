@@ -18,4 +18,4 @@ echo PWD is now $PWD
 cp /home/hubot/devchitchatConfig.js /home/hubot/devchitchat/config.js
 npm stop
 npm install
-npm start > server.log &
+npm start > server.log
