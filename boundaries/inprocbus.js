@@ -10,7 +10,7 @@ var Path = require('path');
 var queuePath = __dirname + Path.sep + 'queues' + Path.sep;
 var filePathTemplate = queuePath + "{path}.json";
 var debug = require('debug')('inprocbus');
-var Uuid = require('node-Uuid');
+var Uuid = require('node-uuid');
 function Subscription(name, publisher, subscriber){
 	this.time = (new Date()).getTime();
 	this.header = {endpoint: publisher, name: name, uuid: Uuid.v4()};
