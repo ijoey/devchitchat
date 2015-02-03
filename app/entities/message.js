@@ -1,5 +1,4 @@
 var moment = require('moment');
-var Observable = require('./observable');
 var Message = function(obj){
 	this.text = null;
 	this.time = (new Date()).getTime();

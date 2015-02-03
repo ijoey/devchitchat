@@ -1,5 +1,5 @@
 var moment = require('moment');
-var Observable = require('./observable');
+var Observable = require('../../lib/observable');
 var Member = function Member(obj){
 	var self = Observable();
 	var name = null;

@@ -1,5 +1,4 @@
 var net = require('net');
-var util = require('util');
 var fs = require('fs');
 var Datastore = require('nedb');
 
