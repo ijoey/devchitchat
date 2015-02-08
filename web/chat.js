@@ -9,6 +9,7 @@ var clients = {};
 var io = null;
 var Persistence = null;
 var debug = require('debug')('chat');
+var messageOfTheDay = "What are the measurable characteristics that define code quality?";
 bus.start();
 bus.iHandle('SendNewChatMessage', {
 	handle: function(command){
@@ -44,7 +45,7 @@ module.exports = function(web){
 	function createClient(nick, room, socket){
 		return {
 			connect: function(callback){
-				var m = {room: room, text: "Welcome to devchitchat.",
+				var m = {room: room, text: messageOfTheDay,
 					from: {name: 'devchitchat', avatar: '/public/images/bot.png', username: 'devchitchat'},
 					socketId: socket.id
 				};
