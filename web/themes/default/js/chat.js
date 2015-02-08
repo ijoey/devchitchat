@@ -346,7 +346,7 @@
 				message = {text: message, from: {name: 'FromSomewhereElse', username: 'chat server', avatar: '/public/images/penguins.jpg'}};
 			}
 			if(isNotificationsOn && message.from.username !== win.member.username){
-				var n = new Notification(message.from.username, {body: message.text, tag: "notifyUser"});
+				var n = new Notification(message.from.displayName || message.from.name, {body: message.text, tag: "notifyUser", icon: message.from.avatar});
 			}
 			views.forEach(function(v){
 				message.to = {username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar};
