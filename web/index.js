@@ -37,6 +37,7 @@ var Commands = require('../app/commands');
 var Events = require('../app/events');
 var chatServer = null;
 var debug = require('debug')('httpServer');
+var Domain = require('domain');
 function Resource(obj){
 	this.layout = 'default';
 	this.title = "devchitchat";
@@ -51,7 +52,28 @@ function Resource(obj){
 		this[key] = obj[key];
 	}
 }
-
+function createDomain(req, res, next){
+    var d = Domain.create();
+    d.on('error', function(err){
+        console.log('error', err.stack);
+        try{
+            var killtimer = setTimeout(function(){
+                process.exit(1);
+            }, 30000);
+            killtimer.unref();
+            res.statusCode = 500;
+            res.setHeader('content-type', 'text/plain');
+            res.end('oops, application crashed.\n');
+        }catch(err2){
+            console.log('Error sending the 500 response after an error already occurred.', err2.stack);
+        }
+    });
+    d.add(req);
+    d.add(res);
+	d.run(function(){
+		next();
+	});
+}
 function createFolderIfDoesntExist(folder){
 	if(!Fs.existsSync(folder)){
 		Fs.mkdirSync(folder);
@@ -146,6 +168,7 @@ Express.response.represent = function(result){
 		this.end();
 	}.bind(this));
 };
+App.use(createDomain);
 App.use(Compression());
 App.use("/public", StaticServer(Chilla.themeRoot));
 App.use("/uploads", StaticServer(rootPath + '/uploads/'));
