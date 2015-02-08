@@ -90,7 +90,12 @@
 .discussion .message .text{
 	padding: 5px;
 }
-
+.discussion .text a{
+	color: black;
+}
+.discussion .self .text a{
+	color: white;
+}
 .discussion .self .message:nth-child(2):before{
 	content:"";
 	position:absolute;

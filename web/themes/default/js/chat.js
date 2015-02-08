@@ -173,7 +173,7 @@
 				}
 			}catch(e){
 			}
-			return message;			
+			return message;
 		}
 		function hookGsearchResultClass(message){
 			if(message.text.indexOf('GsearchResultClass') === -1) return message;
@@ -185,6 +185,23 @@
 			});
 			return message;
 		}
+		function hookForLinks(message){
+			var urls = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/ig.exec(message.text);
+			if(!urls){
+				return message;
+			}
+			var anchors = urls.map(function(url){
+				if(!url){
+					return url;
+				}
+				return '<a target="_blank" href="' + (url.indexOf('http') === -1 ? 'http://' : '') + url + '">' + url + '</a>';
+			});
+			urls.forEach(function(url, i){
+				message.text = message.text.replace(url, anchors[i]);
+			});
+			return message;
+		}
+		hooks.push({execute: hookForLinks});
 		hooks.push({execute: hookGsearchResultClass});
 		hooks.push({execute: hookGithubResponse});
 		hooks.push({execute: hookListOfUsers});
