@@ -305,6 +305,7 @@ App.get('/welcome.:format?', function(req, resp, next){
 			'https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js',
 			'/socket.io/socket.io.js',
 			'/public/js/hogan-2.0.0.min.js',
+			'/public/js/uri.js',
 			'/public/js/mvc.js',
 			'/public/js/chat.js',
 			'/public/js/menu.js'

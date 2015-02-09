@@ -141,7 +141,7 @@
 		template.style.display = 'none';
 		var messageTemplate = Hogan.compile(template.innerHTML);
 		var lastTimeMessageWasSent = (new Date()).getTime();
-		var hooks = [];		
+		var hooks = [];
 		function hookForImages(message){
 			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?(&.*)?#\.png/ig, '<img src="$&" />');
 			return message;
@@ -185,19 +185,15 @@
 			});
 			return message;
 		}
-		function hookForLinks(message){
-			var urls = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/ig.exec(message.text);
-			if(!urls){
-				return message;
+		function includeHttp(url){
+			if(url.indexOf('http') > -1){
+				return url;
 			}
-			var anchors = urls.map(function(url){
-				if(!url){
-					return url;
-				}
-				return '<a target="_blank" href="' + (url.indexOf('http') === -1 ? 'http://' : '') + url + '">' + url + '</a>';
-			});
-			urls.forEach(function(url, i){
-				message.text = message.text.replace(url, anchors[i]);
+			return 'http://' + url;
+		}
+		function hookForLinks(message){
+			message.text = URI.withinString(message.text, function(url){
+				return '<a href="' + includeHttp(url) + '" target="_blank">' + url + '</a>';
 			});
 			return message;
 		}
