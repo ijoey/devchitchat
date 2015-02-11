@@ -109,18 +109,6 @@
 		self.model.subscribe('splice', userLeft);
 		return self;
 	};
-	n.ScrollToTopView = function(container, model, delegate){
-		var self = {
-			container: container
-			, model: model
-			, delegate: delegate
-		};
-		function messageWasAdded(key, old, v){
-			self.container.scrollTo(0,0);
-		}
-		self.model.subscribe('push', messageWasAdded);
-		return self;
-	};
 	n.DiscussionView = function(container, model, delegate){
 		var self = {
 			container: container
@@ -418,7 +406,6 @@
 			views.push(n.DiscussionView(document.getElementById('messagesView'), messages, self));
 			views.push(n.RosterView(document.getElementById('rosterView'), roster, self));
 			views.push(messageView = n.MessageView(document.getElementById("comment"), message, self));
-			views.push(n.ScrollToTopView(window, messages, self));
 			messageView.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth})
 			win.addEventListener('resize', self, true);
 			
