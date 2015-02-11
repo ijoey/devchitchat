@@ -430,7 +430,6 @@
 					return;
 				}
 				list.forEach(function(m){
-					console.log(new n.Message(m));
 					messages.push(new n.Message(m));
 				});
 			});
