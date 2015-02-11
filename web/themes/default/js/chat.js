@@ -55,8 +55,6 @@
 		self.field.focus();
 		return self;
 	};
-	
-	
 	n.RosterView = function(container, model, delegate){
 		var self = {
 			container: container
@@ -193,6 +191,7 @@
 		function messageWasAdded(key, old, v, m){
 			if(!v) return;
 			if(!v.from) return;
+			var originalHeight = discussion.scrollHeight;
 			var lastMessage = discussion.querySelector("[data-from='" + v.from._id + "']:first-child");
 			var elem = template.cloneNode(true);
 			elem.setAttribute('data-from', v.from._id);
@@ -220,6 +219,7 @@
 				lastMessage.insertBefore(messages, lastMessage.querySelector('.message'));
 			}
 			lastTimeMessageWasSent = v.time;
+			n.NotificationCenter.publish('chatHeightChange', self, discussion.scrollHeight - originalHeight);
 		}
 		function messageWasRemoved(key, old, v){
 			var last = container.querySelector(".discussion:last-child");
@@ -402,13 +402,13 @@
 			socket.on('reconnecting', self.reconnecting);
 			socket.on('error', self.error);
 			socket.on('CustomerSignedUpForEmail', self.CustomerSignedUpForEmail);
-			var messageView = null;
-			views.push(n.DiscussionView(document.getElementById('messagesView'), messages, self));
+			var messageView = null, discussionView = null;
+			views.push(discussionView = n.DiscussionView(document.getElementById('messagesView'), messages, self));
 			views.push(n.RosterView(document.getElementById('rosterView'), roster, self));
 			views.push(messageView = n.MessageView(document.getElementById("comment"), message, self));
 			messageView.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth})
 			win.addEventListener('resize', self, true);
-			
+
 		    socket.emit('nickname', win.member.username, function(exists){
 		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar});
 		    });
@@ -421,6 +421,12 @@
 					messages.push(new n.Message(m));
 				});
 			});
+
+			n.NotificationCenter.subscribe('chatHeightChange', { chatHeightChange: function(publisher, messageHeight) {
+				if (window.scrollY <= 0)
+					return;
+				window.scrollTo(window.scrollX, window.scrollY + messageHeight);
+			}}, discussionView);
 		}
 		win.addEventListener('unload', self.release);		
 		return self;
