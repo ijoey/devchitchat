@@ -39,6 +39,25 @@ var Db = {
 				callback(null, list);
 			});
 			
+		},
+		findPrevious24Hours: function findPrevious24Hours(room, callback){
+			var d = (new Date());
+			d.setDate(d.getDate() - 1);
+			messageDb.find({$where: function(){
+				return this.room === room && this.time >= d.getTime();
+			}}).sort({time: 1}).limit(200).exec(function(err, docs){
+				if(err){
+					return callback(err, null);
+				}
+				if(docs.length === 0) {
+					return callback(null, null);
+				}
+				var list = [];
+				docs.forEach(function(doc){
+					list.push(new Message(doc));
+				});
+				callback(null, list);
+			});
 		}
 		, refresh: function(){
 			messageDb.loadDatabase();

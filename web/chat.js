@@ -3,6 +3,7 @@ var Commands = require('../app/commands');
 var Events = require('../app/events');
 var hooks = [];
 var Member = require('../app/entities/member');
+var Message = require('../app/entities/message');
 var bus = require('../boundaries/inprocbus');
 var nicknames = {};
 var clients = {};
@@ -13,12 +14,12 @@ var messageOfTheDay = "What are the measurable characteristics that define code 
 bus.start();
 bus.iHandle('SendNewChatMessage', {
 	handle: function(command){
-		var user = nicknames[command.body.socketId] || new Member(command.body.from);
-		var m = {text: command.body.text, time: (new Date()).getTime(), from: user, socketId: command.body.socketId};
-		Persistence.member.findOne({username: user.username}, function(err, doc){
+		var m = command.body;
+		m.from = nicknames[command.body.socketId] || new Member(command.body.from);
+		Persistence.member.findOne({username: m.from.username}, function(err, doc){
 			m.from.avatar = '/public/images/penguins.jpg';
-			m.from.username = command.body.from.username;
-			m.from.name = command.body.from.name;
+			m.from.username = m.from.username;
+			m.from.name = m.from.name;
 			if(doc){
 				m.from.avatar = doc.avatar;
 				m.from.username = doc.username;
@@ -32,7 +33,16 @@ bus.iHandle('SendNewChatMessage', {
     }
 });
 bus.iSubscribeTo('NewChatMessageWasSent', null, {
-	update: function(event){
+	update: function update(event){
+		Persistence.message.save(event.body, function(err, doc){
+			if(err){
+				console.log('error occurred persisting message', err, doc);
+			}
+		});
+	}
+});
+bus.iSubscribeTo('NewChatMessageWasSent', null, {
+	update: function update(event){
 		io.emit('message', event.body);
 	}
 });
@@ -89,24 +99,30 @@ module.exports = function(web){
 		});
 	});
 	io.on('connection', function (socket) {
-		var room = "#" + getRoomFromReferrer(socket);
+		var room = getRoomFromReferrer(socket);
 		debug('on connection');
 		socket.on('message', function (msg) {
-			var room = "#" + getRoomFromReferrer(socket);
+			var room = getRoomFromReferrer(socket);
 			var message = {
 				text: msg,
 				time: (new Date()).getTime(),
 				from: nicknames[socket.id],
 				room: room,
+				to: null,
 				socketId: socket.id
 			};
 			clients[socket.id].say(message);
 		});
 		socket.on('send previous messages', function(msg, ack){
-			return ack([]);
+			Persistence.message.findPrevious24Hours(room, function(err, doc){
+				if(err){
+					console.log("error sending today messages", err);
+				}
+				return ack(doc);
+			});
 		});
 		socket.on('nickname', function (nick, fn) {
-			var room = "#" + getRoomFromReferrer(socket);
+			var room = getRoomFromReferrer(socket);
 			socket.broadcast.emit('joined', nicknames[socket.id]);
 			io.sockets.emit('nicknames', nicknames);
 			return fn(true);
@@ -116,7 +132,7 @@ module.exports = function(web){
 		});
 		socket.on('disconnect', function () {
 			debug('disconnecting', arguments);
-			var room = "#" + getRoomFromReferrer(socket);
+			var room = getRoomFromReferrer(socket);
 			clients[socket.id].disconnect("peace out!!");
 			delete clients[socket.id];
 			delete nicknames[socket.id];

@@ -3,6 +3,7 @@ var Message = function(obj){
 	this.text = null;
 	this.time = (new Date()).getTime();
 	this.from = null;
+	this.room = null;
 	this._id = null;
 	for(var key in obj){
 		this[key] = obj[key];

@@ -215,7 +215,7 @@
 			if(lastMessage === null){
 				elem.innerHTML = messageTemplate.render(v);				
 				var first = discussion.querySelector('.discussion li:first-child');
-				if(v.to.username === v.from.username){
+				if(delegate.member.username === v.from.username){
 					elem.className = 'self';
 				}
 				var avatar = elem.querySelector('img');
@@ -248,7 +248,10 @@
 		this.to = null;
 		this.from = null;
 		this.time = null;
-	  for(var key in obj) this[key] = obj[key];
+		this.room = null;
+		for(var key in obj){
+			this[key] = obj[key];
+		}
 	};
 	n.Message.prototype = {
 		sent: function(lastTimeSent){
@@ -395,7 +398,8 @@
 					}
 				})
 			}
-		}
+		};
+		self.member = win.member;
 		
 		self.requestNotificationPermission();
 		var socket;
@@ -422,8 +426,12 @@
 		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar});
 		    });
 			socket.emit('send previous messages', 'hello?', function(list){
+				if(!list){
+					return;
+				}
 				list.forEach(function(m){
-					messages.push(new n.Message({text: m.message, to: win.member, from: m.author}));
+					console.log(new n.Message(m));
+					messages.push(new n.Message(m));
 				});
 			});
 		}
