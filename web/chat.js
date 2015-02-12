@@ -47,7 +47,7 @@ bus.iSubscribeTo('NewChatMessageWasSent', null, {
 	}
 });
 
-module.exports = function(web){
+module.exports = function init(web){
 	io = require('socket.io')(web.server);
 	var cookieParserFunction = web.cookieParser();
 	var cookieSessionFunction = web.cookieSession({ keys: [web.config.cookie.key, ':blah:'], secret: web.config.cookie.secret});
@@ -101,6 +101,9 @@ module.exports = function(web){
 	io.on('connection', function (socket) {
 		var room = getRoomFromReferrer(socket);
 		debug('on connection');
+		socket.on('error', function(err){
+			console.log(err);
+		});
 		socket.on('message', function (msg) {
 			var room = getRoomFromReferrer(socket);
 			var message = {
