@@ -62,7 +62,6 @@ function createDomain(req, res, next){
             }, 30000);
             killtimer.unref();
             res.statusCode = 500;
-            res.setHeader('content-type', 'text/plain');
             res.end('oops, application crashed.\n');
         }catch(err2){
             console.log('Error sending the 500 response after an error already occurred.', err2.stack);
