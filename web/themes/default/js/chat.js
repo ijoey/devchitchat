@@ -27,6 +27,7 @@
 				if(this.delegate.messageWasSubmitted) {
 					this.delegate.messageWasSubmitted(model);
 				}
+				n.NotificationCenter.publish('thisUserHasSentAMessage', this, this.model);
 				this.model.text = '';
 			}
 			, keydown: function(e){
@@ -298,14 +299,18 @@
 			return message;
 		};
 		self.messageWasSubmitted = function(model){
+			if(!model.text){
+				return;
+			}
+			if(model.text.length === 0){
+				return;
+			}
 			views.forEach(function(v){
 				if(v.messageWasSubmitted){
 					v.messageWasSubmitted(model);
 				}
 			});
-			if(model.text && model.text.length > 0){
-				socket.emit('message', model.text);
-			}
+			socket.emit('message', model.text);
 		};
 		self.connected = function(nicknames){
 			views.forEach(function(v){
@@ -328,12 +333,31 @@
 				}
 			});
 		};
+		self.didShowNotification = function(e){
+			setTimeout(function closeIt(){
+				e.target.close();
+				e.target.removeEventListener(this.didShowNotification);
+			}, 3000);
+		};
+		
+		self.isActiveRightNow = function(){
+			var now = new Date();
+			var seconds = (now.getTime() - this.activityTimestamp.getTime()) / 1000;
+			return seconds < this.ACTIVITY_LIMIT_IN_SECONDS;
+		};
+		
+		self.ACTIVITY_LIMIT_IN_SECONDS = 20;
+		
 		self.message = function(message){
 			if(typeof message === 'string'){
 				message = {text: message, from: {name: 'FromSomewhereElse', username: 'chat server', avatar: '/public/images/penguins.jpg'}};
 			}
-			if(isNotificationsOn && message.from.username !== win.member.username){
+			if(isNotificationsOn &&
+				message.from.username !== win.member.username &&
+				!self.isActiveRightNow()
+			){
 				var n = new Notification(message.from.displayName || message.from.name, {body: message.text, tag: "notifyUser", icon: message.from.avatar});
+				n.addEventListener('show', self.didShowNotification.bind(self), true);
 			}
 			views.forEach(function(v){
 				message.to = {username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar};
@@ -388,7 +412,7 @@
 			}
 		};
 		self.member = win.member;
-		
+		self.activityTimestamp = new Date();
 		self.requestNotificationPermission();
 		var socket;
 		if(win.member){
@@ -412,6 +436,7 @@
 		    socket.emit('nickname', win.member.username, function(exists){
 		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar});
 		    });
+			
 			socket.emit('send previous messages', 'hello?', function(list){
 				if(!list){
 					return;
@@ -420,7 +445,11 @@
 					messages.push(new n.Message(m));
 				});
 			});
-
+			
+			n.NotificationCenter.subscribe('thisUserHasSentAMessage', {thisUserHasSentAMessage: function(publisher, info){
+				self.activityTimestamp = new Date();
+			}}, messageView);
+			
 			n.NotificationCenter.subscribe('chatHeightChange', { chatHeightChange: function(publisher, messageHeight) {
 				if (window.scrollY <= 0)
 					return;
