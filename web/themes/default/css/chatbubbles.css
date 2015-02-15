@@ -87,8 +87,10 @@
 	position: relative;
 	z-index:1;
 }
+
 .discussion .message .text{
 	padding: 5px;
+	min-height: 20px;
 }
 .discussion .text a{
 	color: black;
@@ -119,6 +121,17 @@
 	border-bottom-left-radius: 10px;
 	-webkit-transform:translate(-30px, -2px);
 	clear: both;
+}
+.discussion .self.preview .message,
+.discussion .self.preview .message:nth-child(2):before{
+	background: orange;
+}
+.discussion .self.preview .message:nth-child(2):before{
+	border-right:20px solid orange;
+}
+.discussion .self.preview small{
+	margin-right: 60px;
+	color: grey;
 }
 .discussion .other .message{
 	position:relative;

@@ -27,7 +27,6 @@ if(shouldStop){
 		console.log(err);
     });
 	
-	
 	var stopBus = new Bus.Publisher(stoppingPort);
 	var web = require('./index');
 	var os=require('os');

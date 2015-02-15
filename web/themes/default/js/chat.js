@@ -1,8 +1,26 @@
 (function(n, win){
 	function debug(level){
 		console.log(arguments);
-	}	
+	}
+	n.Events = {
+		MESSAGE_WAS_SUBMITTED: 'MESSAGE_WAS_SUBMITTED',
+		THIS_USER_HAS_SENT_A_MESSAGE: 'THIS_USER_HAS_SENT_A_MESSAGE',
+		HAS_STARTED_TYPING: 'HAS_STARTED_TYPING',
+		HAS_STOPPED_TYPING: 'HAS_STOPPED_TYPING',
+		CHAT_HEIGHT_HAS_CHANGED: 'CHAT_HEIGHT_HAS_CHANGED'
+	};
+	
 	n.MessageView = function(container, model, delegate){
+		var typingTimestamp = new Date();
+		var typingTimer = null;
+		function startTimer(){
+			n.NotificationCenter.publish(n.Events.HAS_STARTED_TYPING, self, null);
+			return new Date();
+		}
+		function stopTimer(){
+			typingTimer = null;
+			n.NotificationCenter.publish(n.Events.HAS_STOPPED_TYPING, self, null);
+		}
 		var self = {
 			container: container
 			, model: model
@@ -23,20 +41,29 @@
 				e.preventDefault();
 				this.model.from = this.model.to;
 				this.model.time = (new Date()).getTime();
-				this.model.text = this.field.value;
 				if(this.delegate.messageWasSubmitted) {
 					this.delegate.messageWasSubmitted(model);
 				}
-				n.NotificationCenter.publish('thisUserHasSentAMessage', this, this.model);
+				n.NotificationCenter.publish(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, this, this.model);
+				if(typingTimer !== null){
+					stopTimer();
+				}
+				typingTimestamp = new Date();
 				this.model.text = '';
+				this.field.value = '';
 			}
-			, keydown: function(e){
+			, keyup: function(e){
+				typingTimestamp = new Date();
+				if(typingTimer === null){
+					typingTimer = startTimer();
+				}
 				if(e.keyCode === 13){
 					this.button.click();
 				}
+				this.model.text = this.field.value;
 			}
 			, release: function(){
-				this.field.removeEventListener('keydown', this);
+				this.field.removeEventListener('keyup', this);
 				this.form.removeEventListener('submit', this);
 			}
 		};
@@ -46,14 +73,42 @@
 			, set: function(v){ self.field.style.top = v+'px';}
 			, enumerable: true
 		});
-		function textDidChange(key, old, v){
-			self.field.value = v;
-		}
 
-		self.field.addEventListener("keydown", self, true);
+		self.field.addEventListener("keyup", self, true);
 		self.form.addEventListener('submit', self, true);
-		self.model.subscribe("text", textDidChange);
 		self.field.focus();
+		return self;
+	};
+	n.PreviewView = function(container, model, delegate){
+		var self = {
+			container: container,
+			model: model,
+			delegate: delegate,
+			text: container.querySelector('.message .text'),
+			update: function update(key, old, v, m){
+				this.text.innerHTML = v;
+			},
+			show: function show(){
+				this.container.style.display = 'block';
+			},
+			hide: function hide(){
+				this.container.style.display = 'none';
+			}
+		};
+		container.style.display = 'none';
+		container.style.position = 'absolute';
+		container.style.top = '50px';
+		container.style.right = '20px';
+		self.model.subscribe('text', self.update.bind(self));
+		
+		n.NotificationCenter.subscribe(n.Events.HAS_STARTED_TYPING, {HAS_STARTED_TYPING: function(){
+			this.show();
+		}.bind(self)}, null);
+		
+		n.NotificationCenter.subscribe(n.Events.HAS_STOPPED_TYPING, {HAS_STOPPED_TYPING: function(){
+			this.hide();
+		}.bind(self)}, null);
+		
 		return self;
 	};
 	n.RosterView = function(container, model, delegate){
@@ -220,7 +275,7 @@
 				lastMessage.insertBefore(messages, lastMessage.querySelector('.message'));
 			}
 			lastTimeMessageWasSent = v.time;
-			n.NotificationCenter.publish('chatHeightChange', self, discussion.scrollHeight - originalHeight);
+			n.NotificationCenter.publish(n.Events.CHAT_HEIGHT_HAS_CHANGED, self, discussion.scrollHeight - originalHeight);
 		}
 		function messageWasRemoved(key, old, v){
 			var last = container.querySelector(".discussion:last-child");
@@ -270,7 +325,7 @@
 		var message = new n.Observable(new n.Message({text: null, to: {name: win.member.displayName, username: win.member ? win.member.username : null, avatar: win.member ? win.location.origin + win.member.avatar : null}}));
 		var messages = new n.Observable.List();
 		var roster = new n.Observable.List();
-		var self = {};
+		var self = {ACTIVITY_LIMIT_IN_SECONDS: 20};
 		var Permissions = {
 			DEFAULT: 'default'
 			, GRANTED: 'granted'
@@ -345,9 +400,7 @@
 			var seconds = (now.getTime() - this.activityTimestamp.getTime()) / 1000;
 			return seconds < this.ACTIVITY_LIMIT_IN_SECONDS;
 		};
-		
-		self.ACTIVITY_LIMIT_IN_SECONDS = 20;
-		
+				
 		self.message = function(message){
 			if(typeof message === 'string'){
 				message = {text: message, from: {name: 'FromSomewhereElse', username: 'chat server', avatar: '/public/images/penguins.jpg'}};
@@ -430,6 +483,20 @@
 			views.push(discussionView = n.DiscussionView(document.getElementById('messagesView'), messages, self));
 			views.push(n.RosterView(document.getElementById('rosterView'), roster, self));
 			views.push(messageView = n.MessageView(document.getElementById("comment"), message, self));
+			
+			var firstChild = discussionView.container.querySelector(".discussion li:first-child");
+			var template = firstChild.cloneNode(true);
+			template.style.display = 'none';
+			template.className = 'self preview';
+			var compiled = Hogan.compile(template.innerHTML);
+			var html = compiled.render({from: win.member});
+			template.innerHTML = html + '<small>Not sent yet.</small>';
+			var avatar = template.querySelector('img');
+			avatar.src = avatar.getAttribute('data-src');
+			
+			firstChild.parentNode.appendChild(template);
+			views.push(n.PreviewView(template, message, self));
+			
 			messageView.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth})
 			win.addEventListener('resize', self, true);
 
@@ -446,11 +513,11 @@
 				});
 			});
 			
-			n.NotificationCenter.subscribe('thisUserHasSentAMessage', {thisUserHasSentAMessage: function(publisher, info){
+			n.NotificationCenter.subscribe(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, {THIS_USER_HAS_SENT_A_MESSAGE: function(publisher, info){
 				self.activityTimestamp = new Date();
 			}}, messageView);
 			
-			n.NotificationCenter.subscribe('chatHeightChange', { chatHeightChange: function(publisher, messageHeight) {
+			n.NotificationCenter.subscribe(n.Events.CHAT_HEIGHT_HAS_CHANGED, {CHAT_HEIGHT_HAS_CHANGED: function(publisher, messageHeight) {
 				if (window.scrollY <= 0)
 					return;
 				window.scrollTo(window.scrollX, window.scrollY + messageHeight);
