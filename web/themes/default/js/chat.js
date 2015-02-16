@@ -13,6 +13,10 @@
 	n.MessageView = function(container, model, delegate){
 		var typingTimestamp = new Date();
 		var typingTimer = null;
+		var defaultStyle = {
+			position: container.style.position,
+			top: container.style.top
+		};
 		function startTimer(){
 			n.NotificationCenter.publish(n.Events.HAS_STARTED_TYPING, self, null);
 			return new Date();
@@ -65,8 +69,20 @@
 			, release: function(){
 				this.field.removeEventListener('keyup', this);
 				this.form.removeEventListener('submit', this);
+			},
+			scrolling: function scrolling(e){
+				if(window.scrollY > 0){
+					if(this.container.style.position !== 'fixed'){
+						this.container.style.position = 'fixed';
+						this.container.style.top = '0';						
+					}
+				}else if(this.container.style.position !== defaultStyle.position){
+					this.container.style.position = defaultStyle.position;
+					this.container.style.top = defaultStyle.top;
+				}
 			}
 		};
+		window.addEventListener('scroll', self.scrolling.bind(self), true);
 		self.button = self.form.querySelector('button');
 		Object.defineProperty(self, 'top', {
 			get: function(){return parseInt(self.field.style.top.replace('px', ''), 10);}
