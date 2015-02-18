@@ -133,6 +133,9 @@ module.exports = function init(web){
 		socket.on('left', function(user){
 			clients[socket.id].disconnect("peace out!!");
 		});
+		socket.on('err', function(err){
+			console.log('error occured', err);
+		});
 		socket.on('disconnect', function () {
 			debug('disconnecting', arguments);
 			var room = getRoomFromReferrer(socket);

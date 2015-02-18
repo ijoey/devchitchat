@@ -21,12 +21,7 @@ if(shouldStop){
 	setTimeout(function(){
 		process.exit(0);
 	}, 1000);
-}else{
-
-    process.stdout.on('error', function(err){
-		console.log(err);
-    });
-	
+}else{	
 	var stopBus = new Bus.Publisher(stoppingPort);
 	var web = require('./index');
 	var os=require('os');
