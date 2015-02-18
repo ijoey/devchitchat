@@ -11,6 +11,7 @@ var io = null;
 var Persistence = null;
 var debug = require('debug')('chat');
 var messageOfTheDay = "What are the measurable characteristics that define code quality?";
+var Domain = require('domain');
 bus.start();
 bus.iHandle('SendNewChatMessage', {
 	handle: function(command){
@@ -79,6 +80,27 @@ module.exports = function init(web){
 		}
 		return socket.handshake.headers.referer.split('/').pop();
 	}
+	io.use(function(socket, next){
+	    var d = Domain.create();
+	    d.on('error', function(err){
+	        console.log('error', err.stack);
+	        try{
+	            var killtimer = setTimeout(function(){
+	                process.exit(1);
+	            }, 30000);
+	            killtimer.unref();
+	            socket.request.res.statusCode = 500;
+	            socket.request.res.end('oops, application crashed.\n');
+	        }catch(err2){
+	            console.log('Error sending the 500 response after an error already occurred.', err2.stack);
+	        }
+	    });
+	    d.add(socket.request);
+	    d.add(socket.request.res);
+		d.run(function(){
+			next();
+		});
+	});
 	
 	io.use(function(socket, next){
 		cookieParserFunction(socket.request, socket.request.res, function(){
