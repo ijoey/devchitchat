@@ -133,7 +133,7 @@ module.exports = function init(web){
 		socket.on('left', function(user){
 			clients[socket.id].disconnect("peace out!!");
 		});
-		socket.on('err', function(err){
+		socket.on('error', function(err){
 			console.log('error occured', err);
 		});
 		socket.on('disconnect', function () {
