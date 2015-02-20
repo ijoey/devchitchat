@@ -88,6 +88,7 @@ Member.prototype = {
 		return user._id === this._id;
 	}
 };
+Member.pipbot = new Member({name: 'pipbot', avatar: '/public/images/bot.png', username: 'pipbot'});
 Member.sortByDate = function(list){
 	return list.sort(byDate);
 };

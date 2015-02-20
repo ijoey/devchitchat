@@ -47,7 +47,13 @@ bus.iSubscribeTo('NewChatMessageWasSent', null, {
 		io.emit('message', event.body);
 	}
 });
-
+bus.iSubscribeTo('NewChatMessageWasSent', null, {
+	update: function update(event){
+		if(/^pipbot/.test(event.body.text)){
+			io.emit('message', new Message({text: 'ready', from: Member.pipbot, time: new Date()}));
+		}
+	}
+});
 module.exports = function init(web){
 	io = require('socket.io')(web.server);
 	var cookieParserFunction = web.cookieParser();
@@ -57,7 +63,7 @@ module.exports = function init(web){
 		return {
 			connect: function(callback){
 				var m = {room: room, text: messageOfTheDay,
-					from: {name: 'devchitchat', avatar: '/public/images/bot.png', username: 'devchitchat'},
+					from: Member.pipbot,
 					socketId: socket.id
 				};
 				callback(m);
