@@ -307,7 +307,7 @@ App.get('/welcome.:format?', function(req, resp, next){
 			'/public/js/mvc.js',
 			'/public/js/chat.js',
 			'/public/js/menu.js'
-		], css: ['chatbubbles']}),
+		], css: ['chatbubbles', 'room']}),
 		model: []});
 });
 
@@ -441,7 +441,7 @@ App.get("/chat/:room.:format?", function(req, resp, next){
 				'/public/js/mvc.js',
 				'/public/js/chat.js',
 				'/public/js/menu.js'
-			], css: ['chatbubbles']}),
+			], css: ['chatbubbles', 'room']}),
 			model: doc});		
 	});
 });

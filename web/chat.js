@@ -14,64 +14,15 @@ var messageOfTheDay = "What are the measurable characteristics that define code 
 var Domain = require('domain');
 var Http = require('http');
 bus.start();
-bus.iHandle('SendNewChatMessage', {
-	handle: function(command){
-		Persistence.member.findOne({username: command.body.from.username}, function(err, doc){
-			if(err){
-				console.log(err);
-			}
-			if(doc){
-				command.body.from.avatar = doc.avatar;
-				command.body.from.username = doc.username;
-				command.body.from.name = doc.name;
-			}
-			hooks.forEach(function(hook){
-				hook.execute(m);
-			});
-			io.to(command.body.room).emit('message', command.body);
-			bus.publish(new Events.NewChatMessageWasSent(command.body));
-		});
-    }
-});
-bus.iHandle('SendNicknames', {
-	handle: function handle(command){
-		io.sockets.to(command.body.room).emit('nicknames', command.body.nicknames);
-	}
-});
 
-bus.iSubscribeTo('NewChatMessageWasSent', null, {
+var PipBot = {
 	update: function update(event){
-		Persistence.message.save(event.body, function(err, doc){
-			if(err){
-				console.log('error occurred persisting message', err, doc);
-			}
-		});
-	}
-});
-bus.iSubscribeTo('NewChatMessageWasSent', null, {
-	update: function update(event){
-		if(PipBot.canRespondTo(event.body)){
+		if(this.canRespondTo(event.body)){
 			PipBot.execute(event.body, function(response){
 				io.to(event.body.room).emit('message', new Message({text: response, room: event.body.room, from: Member.pipbot, time: new Date()}));				
 			});
 		}
-	}
-});
-bus.iSubscribeTo('UserHasLeft', null, {
-	update: function update(event){
-		delete nicknames[event.body.id];
-		io.sockets.to(event.body.room).emit('left', event.body.member);
-	}
-});
-
-function getRoomFromReferrer(socket){
-	if(!socket.handshake.headers.referer){
-		return null;
-	}
-	return socket.handshake.headers.referer.split('/').pop();
-}
-
-var PipBot = {
+	},
 	canRespondTo: function canRespondTo(message){
 		return /^pipbot/.test(message.text);
 	},
@@ -116,6 +67,55 @@ var PipBot = {
 		}).end();
 	}
 };
+
+function getRoomFromReferrer(socket){
+	if(!socket.handshake.headers.referer){
+		return null;
+	}
+	return socket.handshake.headers.referer.split('/').pop();
+}
+
+bus.iHandle('SendNewChatMessage', {
+	handle: function(command){
+		Persistence.member.findOne({username: command.body.from.username}, function(err, doc){
+			if(err){
+				console.log(err);
+			}
+			if(doc){
+				command.body.from.avatar = doc.avatar;
+				command.body.from.username = doc.username;
+				command.body.from.name = doc.name;
+			}
+			hooks.forEach(function(hook){
+				hook.execute(m);
+			});
+			io.to(command.body.room).emit('message', command.body);
+			bus.publish(new Events.NewChatMessageWasSent(command.body));
+		});
+    }
+});
+bus.iHandle('SendNicknames', {
+	handle: function handle(command){
+		io.sockets.to(command.body.room).emit('nicknames', command.body.nicknames);
+	}
+});
+
+bus.iSubscribeTo('NewChatMessageWasSent', null, {
+	update: function update(event){
+		Persistence.message.save(event.body, function(err, doc){
+			if(err){
+				console.log('error occurred persisting message', err, doc);
+			}
+		});
+	}
+});
+bus.iSubscribeTo('NewChatMessageWasSent', null, PipBot);
+bus.iSubscribeTo('UserHasLeft', null, {
+	update: function update(event){
+		delete nicknames[event.body.id];
+		io.sockets.to(event.body.room).emit('left', event.body.member);
+	}
+});
 
 module.exports = function init(web){
 	io = require('socket.io')(web.server);

@@ -205,7 +205,7 @@
 		var hooks = [];
 		var imageUrlPattern = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ig;
 		function hookForImages(message){
-			message.text = message.text.replace(imageUrlPattern, '<img src="$&" />');
+			message.text = message.text.replace(imageUrlPattern, '<img class="external" src="$&" />');
 			return message;
 		}
 		function hookGithubResponse(message){
