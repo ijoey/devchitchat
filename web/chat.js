@@ -15,24 +15,29 @@ var Domain = require('domain');
 bus.start();
 bus.iHandle('SendNewChatMessage', {
 	handle: function(command){
-		var m = command.body;
-		m.from = nicknames[command.body.socketId] || new Member(command.body.from);
-		Persistence.member.findOne({username: m.from.username}, function(err, doc){
-			m.from.avatar = '/public/images/penguins.jpg';
-			m.from.username = m.from.username;
-			m.from.name = m.from.name;
+		Persistence.member.findOne({username: command.body.from.username}, function(err, doc){
+			if(err){
+				console.log(err);
+			}
 			if(doc){
-				m.from.avatar = doc.avatar;
-				m.from.username = doc.username;
-				m.from.name = doc.name;
+				command.body.from.avatar = doc.avatar;
+				command.body.from.username = doc.username;
+				command.body.from.name = doc.name;
 			}
 			hooks.forEach(function(hook){
 				hook.execute(m);
 			});
-			bus.publish(new Events.NewChatMessageWasSent(m));
+			io.to(command.body.room).emit('message', command.body);
+			bus.publish(new Events.NewChatMessageWasSent(command.body));
 		});
     }
 });
+bus.iHandle('SendNicknames', {
+	handle: function handle(command){
+		io.sockets.to(command.body.room).emit('nicknames', command.body.nicknames);
+	}
+});
+
 bus.iSubscribeTo('NewChatMessageWasSent', null, {
 	update: function update(event){
 		Persistence.message.save(event.body, function(err, doc){
@@ -44,48 +49,30 @@ bus.iSubscribeTo('NewChatMessageWasSent', null, {
 });
 bus.iSubscribeTo('NewChatMessageWasSent', null, {
 	update: function update(event){
-		io.emit('message', event.body);
-	}
-});
-bus.iSubscribeTo('NewChatMessageWasSent', null, {
-	update: function update(event){
 		if(/^pipbot/.test(event.body.text)){
-			io.emit('message', new Message({text: 'ready', from: Member.pipbot, time: new Date()}));
+			io.to(event.body.room).emit('message', new Message({text: 'ready', room: event.body.room, from: Member.pipbot, time: new Date()}));
 		}
 	}
 });
+bus.iSubscribeTo('UserHasLeft', null, {
+	update: function update(event){
+		delete nicknames[event.body.id];
+		io.sockets.to(event.body.room).emit('left', event.body.id);
+	}
+});
+function getRoomFromReferrer(socket){
+	if(!socket.handshake.headers.referer){
+		return null;
+	}
+	return socket.handshake.headers.referer.split('/').pop();
+}
+
 module.exports = function init(web){
 	io = require('socket.io')(web.server);
 	var cookieParserFunction = web.cookieParser();
 	var cookieSessionFunction = web.cookieSession({ keys: [web.config.cookie.key, ':blah:'], secret: web.config.cookie.secret});
 	Persistence = web.Persistence;
-	function createClient(nick, room, socket){
-		return {
-			connect: function(callback){
-				var m = {room: room, text: messageOfTheDay,
-					from: Member.pipbot,
-					socketId: socket.id
-				};
-				callback(m);
-			},
-			disconnect: function(message){
-				debug('disconnected', message);
-			},
-			join: function(room, callback){
-				callback(nick, nick + " joined the room");
-			},
-			say: function(message){
-				bus.send(new Commands.SendNewChatMessage(message));
-			}
-		};
-	}
 	
-	function getRoomFromReferrer(socket){
-		if(!socket.handshake.headers.referer){
-			return null;
-		}
-		return socket.handshake.headers.referer.split('/').pop();
-	}
 	io.use(function(socket, next){
 	    var d = Domain.create();
 	    d.on('error', function(err){
@@ -126,59 +113,73 @@ module.exports = function init(web){
 			});
 		});
 	});
-	io.on('connection', function (socket) {
-		var room = getRoomFromReferrer(socket);
-		debug('on connection');
-		socket.on('error', function(err){
+	function Client(socket, room, nicknames, delegate){
+		this.socket = socket;
+		this.room = room;
+		this.nicknames = nicknames;
+		this.delegate = delegate;
+		this.socket.on('message', this.onMessage.bind(this));
+		this.socket.on('send previous messages', this.onSendPreviousMessages.bind(this));
+		this.socket.on('nickname', this.onNickname.bind(this));
+		this.socket.on('left', this.onLeft.bind(this));
+		socket.on('disconnect', this.onDisconnect.bind(this));
+	}
+	Client.prototype = {
+		onError: function onError(err){
 			console.log(err);
-		});
-		socket.on('message', function (msg) {
-			var room = getRoomFromReferrer(socket);
+		},
+		onMessage: function onMessage(text){
 			var message = {
-				text: msg,
+				text: text,
 				time: (new Date()).getTime(),
-				from: nicknames[socket.id],
-				room: room,
+				from: this.nicknames[this.socket.id] || Member.unknown,
+				room: this.room,
 				to: null,
-				socketId: socket.id
+				socketId: this.socket.id
 			};
-			clients[socket.id].say(message);
-		});
-		socket.on('send previous messages', function(msg, ack){
-			Persistence.message.findPrevious24Hours(room, function(err, doc){
+			this.delegate.send(new Commands.SendNewChatMessage(message));
+		},
+		onSendPreviousMessages: function onSendPreviousMessages(message, callback){
+			Persistence.message.findPrevious24Hours(this.room, function(err, doc){
 				if(err){
 					console.log("error sending today messages", err);
 				}
-				return ack(doc);
+				return callback(doc);
 			});
-		});
-		socket.on('nickname', function (nick, fn) {
-			var room = getRoomFromReferrer(socket);
-			socket.broadcast.emit('joined', nicknames[socket.id]);
-			io.sockets.emit('nicknames', nicknames);
-			return fn(true);
-		});
-		socket.on('left', function(user){
-			clients[socket.id].disconnect("peace out!!");
-		});
-		socket.on('error', function(err){
-			console.log('error occured', err);
-		});
-		socket.on('disconnect', function () {
+		},
+		onNickname: function onNickname(nick, callback){
+			this.socket.to(this.room).broadcast.emit('joined', this.nicknames[this.socket.id]);
+			this.delegate.send(new Commands.SendNicknames({room: this.room, nicknames: this.nicknames}));
+			return callback(true);
+		},
+		onLeft: function onLeft(user){
+			debug('disconnected', user);
+		},
+		onDisconnect: function onDisconnect(){
 			debug('disconnecting', arguments);
-			var room = getRoomFromReferrer(socket);
-			clients[socket.id].disconnect("peace out!!");
-			delete clients[socket.id];
-			delete nicknames[socket.id];
-			io.sockets.emit('left', socket.id);
-			io.sockets.emit('nicknames', nicknames);
-		});
-		clients[socket.id] = createClient(socket.request._query.username, room, socket);
-        clients[socket.id].connect(function(message){
-			socket.emit('message', message);
-            clients[socket.id].join(room, function(who, message){});
-        });
-		socket.emit('connected', nicknames);
+			this.delegate.publish(new Events.UserHasLeft({room: this.room, member: this.nicknames[this.socket.id], id: this.socket.id}));
+			this.delegate.send(new Commands.SendNicknames({room: this.room, nicknames: this.nicknames}));
+		},
+		connect: function connect(message){
+			this.socket.emit('message', message);
+			this.socket.emit('connected', this.nicknames);
+			this.delegate.publish(new Events.UserHasConnected({room: this.room, member: this.nicknames[this.socket.id]}));
+		},
+		join: function join(room){
+			this.socket.join(room);
+		}
+	};
+	
+	io.on('connection', function (socket) {
+		var room = getRoomFromReferrer(socket);
+		var client = new Client(socket, room, nicknames, bus);
+		var message = {room: room,
+			text: messageOfTheDay,
+			from: Member.pipbot,
+			socketId: socket.id
+		};
+		client.connect(message);
+		client.join(room);
 		debug('connecting', socket.request._query.username);
 	});
 	return io;

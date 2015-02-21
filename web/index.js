@@ -301,7 +301,6 @@ App.get('/welcome.:format?', function(req, resp, next){
 	resp.represent({
 		view: 'chat/room',
 		resource: new Resource({title: "Welcome", js:[
-			'https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js',
 			'/socket.io/socket.io.js',
 			'/public/js/hogan-2.0.0.min.js',
 			'/public/js/uri.js',
@@ -309,7 +308,7 @@ App.get('/welcome.:format?', function(req, resp, next){
 			'/public/js/chat.js',
 			'/public/js/menu.js'
 		], css: ['chatbubbles']}),
-		model: []});		
+		model: []});
 });
 
 App.get(['/', '/index.:format?'], function(req, resp, next){
@@ -433,7 +432,17 @@ App.post('/member/:_id/avatars.:format?', function(req, resp, next){
 App.get("/chat/:room.:format?", function(req, resp, next){
 	var room = req.params.room;
 	Persistence.message.findToday(room, function(err, doc){
-		resp.represent({view: 'chat/room', resource: new Resource({js: ['chat'], css: ['chatbubbles']}), model: doc});
+		resp.represent({
+			view: 'chat/room',
+			resource: new Resource({title: "Welcome", js:[
+				'/socket.io/socket.io.js',
+				'/public/js/hogan-2.0.0.min.js',
+				'/public/js/uri.js',
+				'/public/js/mvc.js',
+				'/public/js/chat.js',
+				'/public/js/menu.js'
+			], css: ['chatbubbles']}),
+			model: doc});		
 	});
 });
 

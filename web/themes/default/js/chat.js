@@ -158,7 +158,9 @@
 		var joinedTemplate = Hogan.compile(template.innerHTML);
 		template.style.display = 'none';
 		function userJoined(key, old, v, m){
-			if(document.getElementById(v.username)) return;
+			if(document.getElementById(v.username)){
+				return;
+			}
 			var elem = template.cloneNode(true);
 			elem.style.display = 'block';
 			elem.id = v.username;
@@ -338,7 +340,7 @@
 	};
 	var app = function(){
 		var views = [];
-		var message = new n.Observable(new n.Message({text: null, to: {name: win.member.displayName, username: win.member ? win.member.username : null, avatar: win.member ? win.location.origin + win.member.avatar : null}}));
+		var message = new n.Observable(new n.Message({text: null, to: {name: win.member.displayName, username: win.member ? win.member.username : null, avatar: win.member ? win.member.avatar : null}}));
 		var messages = new n.Observable.List();
 		var roster = new n.Observable.List();
 		var self = {ACTIVITY_LIMIT_IN_SECONDS: 20};
@@ -418,9 +420,6 @@
 		};
 				
 		self.message = function(message){
-			if(typeof message === 'string'){
-				message = {text: message, from: {name: 'FromSomewhereElse', username: 'chat server', avatar: '/public/images/penguins.jpg'}};
-			}
 			if(isNotificationsOn &&
 				message.from.username !== win.member.username &&
 				!self.isActiveRightNow()
@@ -429,7 +428,7 @@
 				n.addEventListener('show', self.didShowNotification.bind(self), true);
 			}
 			views.forEach(function(v){
-				message.to = {username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar};
+				message.to = {username: win.member.username, name: win.member.displayName, avatar: win.member.avatar};
 				if(v.message){
 					v.message(message);
 				}
@@ -438,7 +437,7 @@
 		self.reconnect = function(protocol, flag){
 			debug(0, 'reconnect->', arguments);			
 		    socket.emit('nickname', win.member.username, function(exists){
-		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar});
+		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.member.avatar});
 		    });
 		};
 		self.reconnecting = function(someNumber, flag){
@@ -517,7 +516,7 @@
 			win.addEventListener('resize', self, true);
 
 		    socket.emit('nickname', win.member.username, function(exists){
-		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.location.origin + win.member.avatar});
+		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.member.avatar});
 		    });
 			
 			socket.emit('send previous messages', 'hello?', function(list){

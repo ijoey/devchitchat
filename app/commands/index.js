@@ -40,6 +40,10 @@ function SendNewChatMessage(message){
 	Command.apply(this, [message]);
 	this.header.name = 'SendNewChatMessage';
 }
+function SendNicknames(message){
+	Command.apply(this, [message]);
+	this.header.name = 'SendNicknames';
+}
 module.exports = {
 	AddMember: AddMember
 	, UpdateMember: UpdateMember
@@ -47,5 +51,6 @@ module.exports = {
 	, ChangeAvatar: ChangeAvatar
 	, ChangeBackground: ChangeBackground
 	, SendNewChatMessage: SendNewChatMessage
+	, SendNicknames: SendNicknames
 	, Command: Command
 };

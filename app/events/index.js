@@ -41,6 +41,14 @@ function NewChatMessageWasSent(message){
 	Event.apply(this, [message]);
 	this.header.name = 'NewChatMessageWasSent';
 }
+function UserHasLeft(message){
+	Event.apply(this, [message]);
+	this.header.name = 'UserHasLeft';
+}
+function UserHasConnected(message){
+	Event.apply(this, [message]);
+	this.header.name = 'UserHasConnected';
+}
 
 module.exports = {
 	MemberWasUpdated: MemberWasUpdated
@@ -50,5 +58,7 @@ module.exports = {
 	, BackgroundWasChanged: BackgroundWasChanged
 	, MessageWasSent: MessageWasSent
 	, NewChatMessageWasSent: NewChatMessageWasSent
+	, UserHasLeft: UserHasLeft
+	, UserHasConnected: UserHasConnected
 	, Event: Event
 };
