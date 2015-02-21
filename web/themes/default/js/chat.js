@@ -140,9 +140,9 @@
 				}
 			}
 			, left: function(member){
-				for(var i = 0; i< this.model.length; i++){
-					if(this.model.item(i).username === member.username) this.model.splice(i, 1);
-				}
+				this.model.remove(function(i, m){
+					return m.username === member.username;
+				});
 			}
 			, connected: function(nicknames){
 				for(var name in nicknames){
@@ -170,15 +170,16 @@
 			avatar.src = avatar.getAttribute('data-src');
 		}
 		function userLeft(key, old, v, m){
-			old.forEach(function(member){
-				var remove = parent.querySelector('#' + member.username);
-				parent.removeChild(remove);
-			});
+			var remove = parent.querySelector('#' + old.username);
+			if(remove === null){
+				return;
+			}
+			parent.removeChild(remove);
 		}		
 		self.container.style.display = 'block';
 		self.model.subscribe('push', userJoined);
 		self.model.subscribe('pop', userLeft);
-		self.model.subscribe('splice', userLeft);
+		self.model.subscribe('remove', userLeft);
 		return self;
 	};
 	n.DiscussionView = function(container, model, delegate){
@@ -358,7 +359,7 @@
 				}
 			});
 			if(win.member){
-				socket.emit('left', {username: win.member.username});
+				socket.emit('left', win.member);
 				socket.removeAllListeners('connect');
 				socket.removeAllListeners('nicknames');
 				socket.removeAllListeners('message');

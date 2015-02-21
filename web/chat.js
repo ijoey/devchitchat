@@ -57,7 +57,7 @@ bus.iSubscribeTo('NewChatMessageWasSent', null, {
 bus.iSubscribeTo('UserHasLeft', null, {
 	update: function update(event){
 		delete nicknames[event.body.id];
-		io.sockets.to(event.body.room).emit('left', event.body.id);
+		io.sockets.to(event.body.room).emit('left', event.body.member);
 	}
 });
 function getRoomFromReferrer(socket){
@@ -154,6 +154,7 @@ module.exports = function init(web){
 		},
 		onLeft: function onLeft(user){
 			debug('disconnected', user);
+			this.delegate.publish(new Events.UserHasLeft({room: this.room, member: user, id: this.socket.id}));
 		},
 		onDisconnect: function onDisconnect(){
 			debug('disconnecting', arguments);
