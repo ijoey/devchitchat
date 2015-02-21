@@ -53,7 +53,12 @@ var PipBot = {
 				data += chunk;
 			});
 			res.on('end', function(){
-				var results = JSON.parse(data).responseData.results;
+				var results = [];
+				try{
+					result = JSON.parse(data).responseData.results;
+				}catch(e){
+					console.log(e);
+				}
 				if(results.length > 0){
 					callback(results.map(function(image, i){
 						return image.unescapedUrl;
