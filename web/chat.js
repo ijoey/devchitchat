@@ -12,6 +12,7 @@ var Persistence = null;
 var debug = require('debug')('chat');
 var messageOfTheDay = "What are the measurable characteristics that define code quality?";
 var Domain = require('domain');
+var Http = require('http');
 bus.start();
 bus.iHandle('SendNewChatMessage', {
 	handle: function(command){
@@ -49,8 +50,10 @@ bus.iSubscribeTo('NewChatMessageWasSent', null, {
 });
 bus.iSubscribeTo('NewChatMessageWasSent', null, {
 	update: function update(event){
-		if(/^pipbot/.test(event.body.text)){
-			io.to(event.body.room).emit('message', new Message({text: 'ready', room: event.body.room, from: Member.pipbot, time: new Date()}));
+		if(PipBot.canRespondTo(event.body)){
+			PipBot.execute(event.body, function(response){
+				io.to(event.body.room).emit('message', new Message({text: response, room: event.body.room, from: Member.pipbot, time: new Date()}));				
+			});
 		}
 	}
 });
@@ -60,12 +63,59 @@ bus.iSubscribeTo('UserHasLeft', null, {
 		io.sockets.to(event.body.room).emit('left', event.body.member);
 	}
 });
+
 function getRoomFromReferrer(socket){
 	if(!socket.handshake.headers.referer){
 		return null;
 	}
 	return socket.handshake.headers.referer.split('/').pop();
 }
+
+var PipBot = {
+	canRespondTo: function canRespondTo(message){
+		return /^pipbot/.test(message.text);
+	},
+	execute: function(message, callback){
+		var request = message.text.replace(/^pipbot/, '');
+		debug(request);
+		var match = request.match(/(?:image|img)(?: me)? (.*)/i);
+		if(match !== null){
+			return this.getImage(match[1], callback);
+		}
+		callback('ok');
+	},
+	getImage: function(term, callback){
+		var query = {
+			v: '1.0',
+			rsz: '8',
+			q: term,
+			safe: 'inactive'
+		};
+		var data = '';
+		Http.request({
+			hostname: 'ajax.googleapis.com',
+			method: 'GET',
+			path: '/ajax/services/search/images?v=1.0&rsz=8&q=' + term
+		}, function(res){
+			res.setEncoding('utf8');
+			res.on('data', function(chunk){
+				data += chunk;
+			});
+			res.on('end', function(){
+				var results = JSON.parse(data).responseData.results;
+				if(results.length > 0){
+					callback(results.map(function(image, i){
+						return image.unescapedUrl;
+					}).join('\n'));
+				}else{
+					callback('None found');
+				}
+			});
+		}).on('error', function(err){
+			console.log(err);
+		}).end();
+	}
+};
 
 module.exports = function init(web){
 	io = require('socket.io')(web.server);

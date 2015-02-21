@@ -203,8 +203,9 @@
 		var messageTemplate = Hogan.compile(template.innerHTML);
 		var lastTimeMessageWasSent = (new Date()).getTime();
 		var hooks = [];
+		var imageUrlPattern = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ig;
 		function hookForImages(message){
-			message.text = message.text.replace(/https?:\/\/.*?\.(?:png|jpg|jpeg|gif)(#.*)?(&.*)?#\.png/ig, '<img src="$&" />');
+			message.text = message.text.replace(imageUrlPattern, '<img src="$&" />');
 			return message;
 		}
 		function hookGithubResponse(message){
@@ -253,16 +254,19 @@
 			return 'http://' + url;
 		}
 		function hookForLinks(message){
+			if(imageUrlPattern.test(message.text)){
+				return message;
+			}
 			message.text = URI.withinString(message.text, function(url){
 				return '<a href="' + includeHttp(url) + '" target="_blank">' + url + '</a>';
 			});
 			return message;
 		}
+		hooks.push({execute: hookForImages});
 		hooks.push({execute: hookForLinks});
 		hooks.push({execute: hookGsearchResultClass});
 		hooks.push({execute: hookGithubResponse});
 		hooks.push({execute: hookListOfUsers});
-		hooks.push({execute: hookForImages});
 		function messageWasAdded(key, old, v, m){
 			if(!v) return;
 			if(!v.from) return;
