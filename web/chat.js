@@ -36,17 +36,11 @@ var PipBot = {
 		callback('ok');
 	},
 	getImage: function(term, callback){
-		var query = {
-			v: '1.0',
-			rsz: '8',
-			q: term,
-			safe: 'inactive'
-		};
 		var data = '';
 		Http.request({
 			hostname: 'ajax.googleapis.com',
 			method: 'GET',
-			path: '/ajax/services/search/images?v=1.0&rsz=8&q=' + term
+			path: '/ajax/services/search/images?v=1.0&rsz=8&q=' + encodeURIComponent(term)
 		}, function(res){
 			res.setEncoding('utf8');
 			res.on('data', function(chunk){
@@ -55,7 +49,7 @@ var PipBot = {
 			res.on('end', function(){
 				var results = [];
 				try{
-					result = JSON.parse(data).responseData.results;
+					results = JSON.parse(data).responseData.results;
 				}catch(e){
 					console.log(e);
 				}
