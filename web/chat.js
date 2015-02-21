@@ -19,7 +19,17 @@ var PipBot = {
 	update: function update(event){
 		if(this.canRespondTo(event.body)){
 			PipBot.execute(event.body, function(response){
-				io.to(event.body.room).emit('message', new Message({text: response, room: event.body.room, from: Member.pipbot, time: new Date()}));				
+				var message = new Message({text: response,
+					room: event.body.room,
+					from: Member.pipbot,
+					time: new Date()
+				});
+				Persistence.message.save(message, function(err, doc){
+					if(err){
+						console.log('error occurred persisting message from pipbot', err, doc);
+					}
+				});
+				io.to(event.body.room).emit('message', message);				
 			});
 		}
 	},
