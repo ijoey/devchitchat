@@ -36,18 +36,10 @@
 			, resize: function(viewportSize){
 				//self.top = viewportSize.h - 40;
 			}
-			, handleEvent: function(e){
-				if(this[e.type]){
-					this[e.type](e);
-				}
-			}
-			, submit: function(e){
-				e.preventDefault();
+			, sendMessage: function(){
 				this.model.from = this.model.to;
 				this.model.time = (new Date()).getTime();
-				if(this.delegate.messageWasSubmitted) {
-					this.delegate.messageWasSubmitted(model);
-				}
+				this.delegate.messageWasSubmitted(this.model);
 				n.NotificationCenter.publish(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, this, this.model);
 				if(typingTimer !== null){
 					stopTimer();
@@ -55,6 +47,34 @@
 				typingTimestamp = new Date();
 				this.model.text = '';
 				this.field.value = '';
+			}
+			, handleEvent: function(e){
+				if(this[e.type]){
+					this[e.type](e);
+				}
+			}
+			, paste: function(e){
+				if(!e.clipboardData.items){
+					return;
+				}
+				if(e.clipboardData.items.length === 0){
+					return;
+				}
+				if(e.clipboardData.items[0].type.indexOf('image/') === -1){
+					return;
+				}
+				e.preventDefault();
+				var file = e.clipboardData.items[0].getAsFile();
+	            var reader = new FileReader();
+	            reader.onload = function(evt) {
+					this.model.text = evt.target.result;
+					this.sendMessage();
+				}.bind(this);
+	            reader.readAsDataURL(file);
+			}
+			, submit: function(e){
+				e.preventDefault();
+				this.sendMessage();
 			}
 			, keyup: function(e){
 				typingTimestamp = new Date();
@@ -92,6 +112,7 @@
 
 		self.field.addEventListener("keyup", self, true);
 		self.form.addEventListener('submit', self, true);
+		self.form.addEventListener('paste', self, true);
 		self.field.focus();
 		return self;
 	};
@@ -262,6 +283,11 @@
 			});
 			return message;
 		}
+		function hookForDataImage(message){
+			message.text = message.text.replace(/^data\:image(.*)/, '<img class="external" src="$&" />');
+			return message;
+		}
+		hooks.push({execute: hookForDataImage});
 		hooks.push({execute: hookForImages});
 		hooks.push({execute: hookForLinks});
 		hooks.push({execute: hookGsearchResultClass});

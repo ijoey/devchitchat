@@ -171,7 +171,7 @@ module.exports = function init(web){
 		this.socket.on('send previous messages', this.onSendPreviousMessages.bind(this));
 		this.socket.on('nickname', this.onNickname.bind(this));
 		this.socket.on('left', this.onLeft.bind(this));
-		socket.on('disconnect', this.onDisconnect.bind(this));
+		this.socket.on('disconnect', this.onDisconnect.bind(this));
 	}
 	Client.prototype = {
 		onError: function onError(err){
