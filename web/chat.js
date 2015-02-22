@@ -37,12 +37,7 @@ module.exports = function init(web){
 	var PipBot = {
 		update: function update(event){
 			if(this.canRespondTo(event.body)){
-				PipBot.execute(event.body, function(response){
-					var message = new Message({text: response,
-						room: event.body.room,
-						from: Member.pipbot,
-						time: new Date()
-					});
+				PipBot.execute(event.body, function(message){
 					Persistence.message.save(message, function(err, doc){
 						if(err){
 							console.log('error occurred persisting message from pipbot', err, doc);
@@ -56,15 +51,32 @@ module.exports = function init(web){
 			return /^pipbot/.test(message.text);
 		},
 		execute: function(message, callback){
+			var m = new Message({text: 'ok',
+				room: message.room,
+				from: Member.pipbot,
+				time: new Date()
+			});
+			
 			var request = message.text.replace(/^pipbot/, '');
 			debug(request);
 			var match = request.match(/(?:image|img)(?: me)? (.*)/i);
 			if(match !== null){
-				return this.getImage(match[1], callback);
+				this.getImages(match[1], function(urls){
+					if(urls.length == 0){
+						m.text = 'No images found';
+						return callback(m);
+					}
+					m.text = urls.map(function(url){
+						return '<img src="' + url + '" class="external" />';
+					}).join('\n');
+					m.isHtml = true;
+					callback(m);
+				});
+			}else{
+				callback(m);				
 			}
-			callback('ok');
 		},
-		getImage: function(term, callback){
+		getImages: function(term, callback){
 			var data = '';
 			Http.request({
 				hostname: 'ajax.googleapis.com',
@@ -85,9 +97,9 @@ module.exports = function init(web){
 					if(results.length > 0){
 						callback(results.map(function(image, i){
 							return image.unescapedUrl;
-						}).join('\n'));
+						}));
 					}else{
-						callback('None found');
+						callback([]);
 					}
 				});
 			}).on('error', function(err){

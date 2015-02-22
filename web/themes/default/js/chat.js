@@ -226,6 +226,9 @@
 		var hooks = [];
 		var imageUrlPattern = /https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpg|gif|png)/ig;
 		function hookForImages(message){
+			if(message.isHtml){
+				return message;
+			}
 			message.text = message.text.replace(imageUrlPattern, '<img class="external" src="$&" />');
 			return message;
 		}
