@@ -4,134 +4,147 @@ var Events = require('../app/events');
 var hooks = [];
 var Member = require('../app/entities/member');
 var Message = require('../app/entities/message');
-var bus = require('../boundaries/inprocbus');
 var nicknames = {};
-var clients = {};
-var io = null;
-var Persistence = null;
 var debug = require('debug')('chat');
 var messageOfTheDay = "What are the measurable characteristics that define code quality?";
 var Domain = require('domain');
 var Http = require('http');
-bus.start();
-
-var PipBot = {
-	update: function update(event){
-		if(this.canRespondTo(event.body)){
-			PipBot.execute(event.body, function(response){
-				var message = new Message({text: response,
-					room: event.body.room,
-					from: Member.pipbot,
-					time: new Date()
-				});
-				Persistence.message.save(message, function(err, doc){
-					if(err){
-						console.log('error occurred persisting message from pipbot', err, doc);
-					}
-				});
-				io.to(event.body.room).emit('message', message);				
-			});
-		}
-	},
-	canRespondTo: function canRespondTo(message){
-		return /^pipbot/.test(message.text);
-	},
-	execute: function(message, callback){
-		var request = message.text.replace(/^pipbot/, '');
-		debug(request);
-		var match = request.match(/(?:image|img)(?: me)? (.*)/i);
-		if(match !== null){
-			return this.getImage(match[1], callback);
-		}
-		callback('ok');
-	},
-	getImage: function(term, callback){
-		var data = '';
-		Http.request({
-			hostname: 'ajax.googleapis.com',
-			method: 'GET',
-			path: '/ajax/services/search/images?v=1.0&rsz=8&q=' + encodeURIComponent(term)
-		}, function(res){
-			res.setEncoding('utf8');
-			res.on('data', function(chunk){
-				data += chunk;
-			});
-			res.on('end', function(){
-				var results = [];
-				try{
-					results = JSON.parse(data).responseData.results;
-				}catch(e){
-					console.log(e);
-				}
-				if(results.length > 0){
-					callback(results.map(function(image, i){
-						return image.unescapedUrl;
-					}).join('\n'));
-				}else{
-					callback('None found');
-				}
-			});
-		}).on('error', function(err){
-			console.log(err);
-		}).end();
-	}
-};
-
-function getRoomFromReferrer(socket){
-	if(!socket.handshake.headers.referer){
-		return null;
-	}
-	return socket.handshake.headers.referer.split('/').pop();
-}
-
-bus.iHandle('SendNewChatMessage', {
-	handle: function(command){
-		Persistence.member.findOne({username: command.body.from.username}, function(err, doc){
-			if(err){
-				console.log(err);
-			}
-			if(doc){
-				command.body.from.avatar = doc.avatar;
-				command.body.from.username = doc.username;
-				command.body.from.name = doc.name;
-			}
-			hooks.forEach(function(hook){
-				hook.execute(m);
-			});
-			io.to(command.body.room).emit('message', command.body);
-			bus.publish(new Events.NewChatMessageWasSent(command.body));
-		});
-    }
-});
-bus.iHandle('SendNicknames', {
-	handle: function handle(command){
-		io.sockets.to(command.body.room).emit('nicknames', command.body.nicknames);
-	}
-});
-
-bus.iSubscribeTo('NewChatMessageWasSent', null, {
-	update: function update(event){
-		Persistence.message.save(event.body, function(err, doc){
-			if(err){
-				console.log('error occurred persisting message', err, doc);
-			}
-		});
-	}
-});
-bus.iSubscribeTo('NewChatMessageWasSent', null, PipBot);
-bus.iSubscribeTo('UserHasLeft', null, {
-	update: function update(event){
-		delete nicknames[event.body.id];
-		io.sockets.to(event.body.room).emit('left', event.body.member);
-	}
-});
 
 module.exports = function init(web){
-	io = require('socket.io')(web.server);
+	if(!web.bus){
+		throw new Error('Bus is required');
+	}
+	if(!web.server){
+		throw new Error('Server is required');
+	}
+	if(!web.cookieParser){
+		throw new Error('CookieParser is required');
+	}
+	if(!web.cookieSession){
+		throw new Error('CookeSession is required');
+	}
+	if(!web.Persistence){
+		throw new Error('Persistence is required');
+	}
+	if(!web.config){
+		throw new Error('Config is required');
+	}
+	var io = require('socket.io')(web.server);
 	var cookieParserFunction = web.cookieParser();
 	var cookieSessionFunction = web.cookieSession({ keys: [web.config.cookie.key, ':blah:'], secret: web.config.cookie.secret});
-	Persistence = web.Persistence;
-	
+	var Persistence = web.Persistence;
+	var bus = web.bus;
+	var PipBot = {
+		update: function update(event){
+			if(this.canRespondTo(event.body)){
+				PipBot.execute(event.body, function(response){
+					var message = new Message({text: response,
+						room: event.body.room,
+						from: Member.pipbot,
+						time: new Date()
+					});
+					Persistence.message.save(message, function(err, doc){
+						if(err){
+							console.log('error occurred persisting message from pipbot', err, doc);
+						}
+					});
+					io.to(event.body.room).emit('message', message);				
+				});
+			}
+		},
+		canRespondTo: function canRespondTo(message){
+			return /^pipbot/.test(message.text);
+		},
+		execute: function(message, callback){
+			var request = message.text.replace(/^pipbot/, '');
+			debug(request);
+			var match = request.match(/(?:image|img)(?: me)? (.*)/i);
+			if(match !== null){
+				return this.getImage(match[1], callback);
+			}
+			callback('ok');
+		},
+		getImage: function(term, callback){
+			var data = '';
+			Http.request({
+				hostname: 'ajax.googleapis.com',
+				method: 'GET',
+				path: '/ajax/services/search/images?v=1.0&rsz=8&q=' + encodeURIComponent(term)
+			}, function(res){
+				res.setEncoding('utf8');
+				res.on('data', function(chunk){
+					data += chunk;
+				});
+				res.on('end', function(){
+					var results = [];
+					try{
+						results = JSON.parse(data).responseData.results;
+					}catch(e){
+						console.log(e);
+					}
+					if(results.length > 0){
+						callback(results.map(function(image, i){
+							return image.unescapedUrl;
+						}).join('\n'));
+					}else{
+						callback('None found');
+					}
+				});
+			}).on('error', function(err){
+				console.log(err);
+			}).end();
+		}
+	};
+
+	function getRoomFromReferrer(socket){
+		if(!socket.handshake.headers.referer){
+			return null;
+		}
+		return socket.handshake.headers.referer.split('/').pop();
+	}
+
+	bus.iHandle('SendNewChatMessage', {
+		handle: function(command){
+			Persistence.member.findOne({username: command.body.from.username}, function(err, doc){
+				if(err){
+					console.log(err);
+				}
+				if(doc){
+					command.body.from.avatar = doc.avatar;
+					command.body.from.username = doc.username;
+					command.body.from.name = doc.name;
+				}
+				hooks.forEach(function(hook){
+					hook.execute(m);
+				});
+				io.to(command.body.room).emit('message', command.body);
+				bus.publish(new Events.NewChatMessageWasSent(command.body));
+			});
+	    }
+	});
+	bus.iHandle('SendNicknames', {
+		handle: function handle(command){
+			io.sockets.to(command.body.room).emit('nicknames', command.body.nicknames);
+		}
+	});
+
+	bus.iSubscribeTo('NewChatMessageWasSent', null, {
+		update: function update(event){
+			Persistence.message.save(event.body, function(err, doc){
+				if(err){
+					console.log('error occurred persisting message', err, doc);
+				}
+			});
+		}
+	});
+	bus.iSubscribeTo('NewChatMessageWasSent', null, PipBot);
+	bus.iSubscribeTo('UserHasLeft', null, {
+		update: function update(event){
+			delete nicknames[event.body.id];
+			io.sockets.to(event.body.room).emit('left', event.body.member);
+		}
+	});
+		
 	io.use(function(socket, next){
 	    var d = Domain.create();
 	    d.on('error', function(err){

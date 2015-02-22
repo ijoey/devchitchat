@@ -224,7 +224,7 @@
 		var messageTemplate = Hogan.compile(template.innerHTML);
 		var lastTimeMessageWasSent = (new Date()).getTime();
 		var hooks = [];
-		var imageUrlPattern = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ig;
+		var imageUrlPattern = /https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpg|gif|png)/ig;
 		function hookForImages(message){
 			message.text = message.text.replace(imageUrlPattern, '<img class="external" src="$&" />');
 			return message;
