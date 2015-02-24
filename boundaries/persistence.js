@@ -52,11 +52,10 @@ var Db = {
 				if(docs.length === 0) {
 					return callback(null, null);
 				}
-				var list = [];
-				docs.forEach(function(doc){
-					list.push(new Message(doc));
+				docs.map(function(doc){
+					return new Message(doc);
 				});
-				callback(null, list);
+				callback(null, docs);
 			});
 		}
 		, refresh: function(){
