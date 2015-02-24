@@ -43,11 +43,10 @@ var Db = {
 		findPrevious24Hours: function findPrevious24Hours(room, callback){
 			var d = (new Date());
 			d.setDate(d.getDate() - 1);
-			var ubounds = 0;
 			messageDb.find({$where: function(){
 				ubounds++;
 				return this.room === room && this.time >= d.getTime();
-			}}).sort({time: 1}).exec(function(err, docs){
+			}}).sort({time: -1}).limit(200).exec(function(err, docs){
 				if(err){
 					return callback(err, null);
 				}
@@ -57,8 +56,8 @@ var Db = {
 				var list = docs.map(function(doc){
 					return new Message(doc);
 				});
-				ubounds = ubounds < 200 ? 0 : ubounds;
-				callback(null, list.splice(ubounds - 200, 200));
+				list.reverse();
+				callback(null, list);
 			});
 		}
 		, refresh: function(){
