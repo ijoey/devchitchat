@@ -2,6 +2,23 @@
 	function debug(level){
 		console.log(arguments);
 	}
+	function getBase64Image(img) {
+	    // Create an empty canvas element
+	    var canvas = document.createElement("canvas");
+	    canvas.width = img.width;
+	    canvas.height = img.height;
+
+	    // Copy the image contents to the canvas
+	    var ctx = canvas.getContext("2d");
+	    ctx.drawImage(img, 0, 0);
+
+	    // Get the data-URL formatted image
+	    // Firefox supports PNG and JPEG. You could check img.src to guess the
+	    // original format, but be aware the using "image/jpg" will re-encode the image.
+	    var dataURL = canvas.toDataURL("image/png");
+
+	    return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+	}
 	n.Events = {
 		MESSAGE_WAS_SUBMITTED: 'MESSAGE_WAS_SUBMITTED',
 		THIS_USER_HAS_SENT_A_MESSAGE: 'THIS_USER_HAS_SENT_A_MESSAGE',
@@ -13,6 +30,7 @@
 	n.MessageView = function(container, model, delegate){
 		var typingTimestamp = new Date();
 		var typingTimer = null;
+		var editableComment = document.getElementById('editableComment');
 		var defaultStyle = {
 			position: container.style.position,
 			top: container.style.top
