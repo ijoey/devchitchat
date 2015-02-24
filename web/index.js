@@ -55,10 +55,10 @@ function Resource(obj){
 function createDomain(req, res, next){
     var d = Domain.create();
     d.on('error', function(err){
-        console.log('error', err.stack);
+        console.error("Another freakin' error happened that I was uanble to track down: ", err);
         try{
             var killtimer = setTimeout(function(){
-                process.exit(1);
+                //process.exit(1);
             }, 30000);
             killtimer.unref();
             res.statusCode = 500;
