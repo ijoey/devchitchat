@@ -390,6 +390,7 @@
 		  this[key] = obj[key];
 	  }
 	};
+	
 	var app = function(){
 		var views = [];
 		var message = new n.Observable(new n.Message({text: null, to: {name: win.member.displayName, username: win.member ? win.member.username : null, avatar: win.member ? win.member.avatar : null}}));
@@ -402,7 +403,7 @@
 			, DENIED: 'denied'
 		};
 		var isNotificationsOn = false;
-		
+		self.isActiveRightNow = true;
 		self.release = function(e){
 			views.forEach(function(v){
 				if(v.release){
@@ -464,17 +465,11 @@
 				e.target.removeEventListener(this.didShowNotification);
 			}, 3000);
 		};
-		
-		self.isActiveRightNow = function(){
-			var now = new Date();
-			var seconds = (now.getTime() - this.activityTimestamp.getTime()) / 1000;
-			return seconds < this.ACTIVITY_LIMIT_IN_SECONDS;
-		};
-				
+						
 		self.message = function(message){
 			if(isNotificationsOn &&
 				message.from.username !== win.member.username &&
-				!self.isActiveRightNow()
+				!self.isActiveRightNow
 			){
 				var n = new Notification(message.from.displayName || message.from.name, {body: message.text, tag: "notifyUser", icon: message.from.avatar});
 				n.addEventListener('show', self.didShowNotification.bind(self), true);
@@ -516,6 +511,12 @@
 		};
 		self.CustomerSignedUpForEmail = function(email){
 			console.log(email);
+		};
+		self.blur = function blur(e){
+			this.isActiveRightNow = false;
+		};
+		self.focus = function focus(e){
+			this.isActiveRightNow = true;
 		};
 		self.requestNotificationPermission = function(){
 			if(!('Notification' in window)){
@@ -590,7 +591,10 @@
 				window.scrollTo(window.scrollX, window.scrollY + messageHeight);
 			}}, discussionView);
 		}
-		win.addEventListener('unload', self.release);		
+		win.addEventListener('blur', self.blur.bind(self), true);
+		win.addEventListener('focus', self.focus.bind(self), true);
+		win.addEventListener('unload', self.release, true);
+			
 		return self;
 	}();
 })(MM, window);
