@@ -8,7 +8,8 @@ var nicknames = {};
 var debug = require('debug')('chat');
 var messageOfTheDay = "PRs welcome";
 var Domain = require('domain');
-
+var Https = require('https');
+var Moment = require('moment');
 module.exports = function init(web){
 	if(!web.bus){
 		throw new Error('Bus is required');
@@ -194,8 +195,34 @@ module.exports = function init(web){
 			from: Member.pipbot,
 			socketId: socket.id
 		};
-		client.connect(message);
-		client.join(room);
+		
+		var req = Https.request({
+			hostname: 'api.github.com',
+			path: '/repos/ijoey/devchitchat/commits',
+			method: 'GET',
+			headers: {
+				'user-agent': 'devchitchat'
+			}
+		}, function(res) {
+				res.setEncoding('utf-8');
+				var data = '';
+				res.on('data', function(chunk) {
+					data += chunk;
+				});
+				res.on('end', function(){
+					var response = JSON.parse(data);
+					if(response.length > 0){
+						message.text += '<br />last commit was ' + response[0].commit.committer.date + ': ' + response[0].commit.message;
+					}
+					client.connect(message);
+					client.join(room);
+				});
+			});
+			req.end();
+			req.on('error', function(e) {
+			console.error(e);
+		});
+		
 		debug('connecting', socket.request._query.username);
 	});
 	return io;
