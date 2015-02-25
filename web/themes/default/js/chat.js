@@ -463,7 +463,7 @@
 			setTimeout(function closeIt(){
 				e.target.close();
 				e.target.removeEventListener(this.didShowNotification);
-			}, 3000);
+			}, 5000);
 		};
 						
 		self.message = function(message){
