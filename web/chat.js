@@ -6,7 +6,7 @@ var Member = require('../app/entities/member');
 var Message = require('../app/entities/message');
 var nicknames = {};
 var debug = require('debug')('chat');
-var messageOfTheDay = "What are the measurable characteristics that define code quality?";
+var messageOfTheDay = "PRs welcome";
 var Domain = require('domain');
 
 module.exports = function init(web){
