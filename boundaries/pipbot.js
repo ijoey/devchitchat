@@ -29,8 +29,6 @@ function PipBot(config, Persistence, delegate){
 			var request = message.text.replace(/^pipbot /, '');
 			var match = /google\.images\.find\([\'|\"](.+)[\'|\"]\)/ig.exec(request);
 			var limitMatch = /\.limit\((\d+)\)/ig.exec(request);
-			debug('limitMatch', limitMatch);
-			debug('match', match);
 			if(match !== null){
 				this.getImages(match[1], function(urls){
 					if(urls.length == 0){

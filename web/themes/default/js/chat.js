@@ -309,8 +309,8 @@
 			return message;
 		}
 		hooks.push({execute: hookForDataImage});
-		hooks.push({execute: hookForImages});
 		hooks.push({execute: hookForLinks});
+		hooks.push({execute: hookForImages});
 		hooks.push({execute: hookGsearchResultClass});
 		hooks.push({execute: hookGithubResponse});
 		hooks.push({execute: hookListOfUsers});
