@@ -8,7 +8,6 @@ var nicknames = {};
 var debug = require('debug')('chat');
 var messageOfTheDay = "What are the measurable characteristics that define code quality?";
 var Domain = require('domain');
-var Http = require('http');
 
 module.exports = function init(web){
 	if(!web.bus){
@@ -34,79 +33,6 @@ module.exports = function init(web){
 	var cookieSessionFunction = web.cookieSession({ keys: [web.config.cookie.key, ':blah:'], secret: web.config.cookie.secret});
 	var Persistence = web.Persistence;
 	var bus = web.bus;
-	var PipBot = {
-		update: function update(event){
-			if(this.canRespondTo(event.body)){
-				PipBot.execute(event.body, function(message){
-					Persistence.message.save(message, function(err, doc){
-						if(err){
-							console.log('error occurred persisting message from pipbot', err, doc);
-						}
-					});
-					io.to(event.body.room).emit('message', message);				
-				});
-			}
-		},
-		canRespondTo: function canRespondTo(message){
-			return /^pipbot/.test(message.text);
-		},
-		execute: function(message, callback){
-			var m = new Message({text: 'ok',
-				room: message.room,
-				from: Member.pipbot,
-				time: new Date()
-			});
-			
-			var request = message.text.replace(/^pipbot/, '');
-			debug(request);
-			var match = request.match(/(?:image|img)(?: me)? (.*)/i);
-			if(match !== null){
-				this.getImages(match[1], function(urls){
-					if(urls.length == 0){
-						m.text = 'No images found';
-						return callback(m);
-					}
-					m.text = urls.map(function(url){
-						return '<img src="' + url + '" class="external" />';
-					}).join('\n');
-					m.isHtml = true;
-					callback(m);
-				});
-			}else{
-				callback(m);				
-			}
-		},
-		getImages: function(term, callback){
-			var data = '';
-			Http.request({
-				hostname: 'ajax.googleapis.com',
-				method: 'GET',
-				path: '/ajax/services/search/images?v=1.0&rsz=8&q=' + encodeURIComponent(term)
-			}, function(res){
-				res.setEncoding('utf8');
-				res.on('data', function(chunk){
-					data += chunk;
-				});
-				res.on('end', function(){
-					var results = [];
-					try{
-						results = JSON.parse(data).responseData.results;
-					}catch(e){
-						console.log(e);
-					}
-					if(results.length > 0){
-						callback(results.map(function(image, i){
-							return image.unescapedUrl;
-						}));
-					}else{
-						callback([]);
-					}
-				});
-			}).on('error', function(err){
-				console.log(err);
-			}).end();
-		}
-	};
 
 	function getRoomFromReferrer(socket){
 		if(!socket.handshake.headers.referer){
@@ -147,6 +73,11 @@ module.exports = function init(web){
 					console.log('error occurred persisting message', err, doc);
 				}
 			});
+		}
+	});
+	var PipBot = require('../boundaries/pipbot')(web.config, Persistence, {
+		sendTo: function(room, message){
+			io.to(room).emit('message', message);				
 		}
 	});
 	bus.iSubscribeTo('NewChatMessageWasSent', null, PipBot);
