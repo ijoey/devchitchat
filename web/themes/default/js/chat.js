@@ -134,13 +134,36 @@
 		self.field.focus();
 		return self;
 	};
+	n.ReconnectingCounterView = function(container, model, delegate){
+		var self = {
+			container: container,
+			model: model,
+			delegate: delegate,
+			show: function show(){
+				this.container.style.display = 'block';
+			},
+			hide: function hide(){
+				this.container.style.display = 'none';
+			},
+			update: function update(key, old, v){
+				if(v === 0){
+					this.hide();
+				}else{
+					this.show();
+				}
+				this.container.innerHTML = v;
+			}
+		};
+		self.model.subscribe('times', self.update.bind(self));
+		return self;
+	}
 	n.PreviewView = function(container, model, delegate){
 		var self = {
 			container: container,
 			model: model,
 			delegate: delegate,
 			text: container.querySelector('.message .text'),
-			update: function update(key, old, v, m){
+			update: function update(key, old, v){
 				this.text.innerHTML = v;
 			},
 			show: function show(){
@@ -196,7 +219,7 @@
 		var template = container.querySelector('ul li:first-child');
 		var joinedTemplate = Hogan.compile(template.innerHTML);
 		template.style.display = 'none';
-		function userJoined(key, old, v, m){
+		function userJoined(key, old, v){
 			if(document.getElementById(v.username)){
 				return;
 			}
@@ -208,7 +231,7 @@
 			var avatar = elem.querySelector('img');
 			avatar.src = avatar.getAttribute('data-src');
 		}
-		function userLeft(key, old, v, m){
+		function userLeft(key, old, v){
 			var remove = parent.querySelector('#' + old.username);
 			if(remove === null){
 				return;
@@ -314,7 +337,7 @@
 		hooks.push({execute: hookGsearchResultClass});
 		hooks.push({execute: hookGithubResponse});
 		hooks.push({execute: hookListOfUsers});
-		function messageWasAdded(key, old, v, m){
+		function messageWasAdded(key, old, v){
 			if(!v) return;
 			if(!v.from) return;
 			var originalHeight = discussion.scrollHeight;
@@ -396,6 +419,7 @@
 		var message = new n.Observable(new n.Message({text: null, to: {name: win.member.displayName, username: win.member ? win.member.username : null, avatar: win.member ? win.member.avatar : null}}));
 		var messages = new n.Observable.List();
 		var roster = new n.Observable.List();
+		var reconnecting = new n.Observable({times: 0});
 		var self = {ACTIVITY_LIMIT_IN_SECONDS: 20};
 		var Permissions = {
 			DEFAULT: 'default'
@@ -403,6 +427,10 @@
 			, DENIED: 'denied'
 		};
 		var isNotificationsOn = false;
+		var reconnectingCounterView = document.createElement('div');
+		reconnectingCounterView.className = 'reconnecting';
+		document.body.appendChild(reconnectingCounterView);
+		
 		self.isActiveRightNow = true;
 		self.release = function(e){
 			views.forEach(function(v){
@@ -439,6 +467,7 @@
 			socket.emit('message', model.text);
 		};
 		self.connected = function(nicknames){
+			reconnecting.times = 0;
 			views.forEach(function(v){
 				if(v.connected){
 					v.connected(nicknames);
@@ -488,7 +517,8 @@
 		    });
 		};
 		self.reconnecting = function(someNumber, flag){
-			debug(0, 'reconnecting->', arguments);			
+			reconnecting.times = someNumber;
+			debug(0, 'reconnecting->', someNumber, flag);			
 		};
 		self.error = function(){
 			debug(0, 'error->', arguments);
@@ -508,9 +538,6 @@
 			views.forEach(function(v){
 				if(v.resize) v.resize({h: e.target.document.documentElement.clientHeight, w: e.target.document.documentElement.clientWidth});
 			});
-		};
-		self.CustomerSignedUpForEmail = function(email){
-			console.log(email);
 		};
 		self.blur = function blur(e){
 			this.isActiveRightNow = false;
@@ -546,12 +573,11 @@
 			socket.on('reconnect', self.reconnect);
 			socket.on('reconnecting', self.reconnecting);
 			socket.on('error', self.error);
-			socket.on('CustomerSignedUpForEmail', self.CustomerSignedUpForEmail);
 			var messageView = null, discussionView = null;
 			views.push(discussionView = n.DiscussionView(document.getElementById('messagesView'), messages, self));
 			views.push(n.RosterView(document.getElementById('rosterView'), roster, self));
 			views.push(messageView = n.MessageView(document.getElementById("comment"), message, self));
-			
+			views.push(n.ReconnectingCounterView(reconnectingCounterView, reconnecting, self));
 			var firstChild = discussionView.container.querySelector(".discussion li:first-child");
 			var template = firstChild.cloneNode(true);
 			template.style.display = 'none';
@@ -580,7 +606,7 @@
 					messages.push(new n.Message(m));
 				});
 			});
-			
+
 			n.NotificationCenter.subscribe(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, {THIS_USER_HAS_SENT_A_MESSAGE: function(publisher, info){
 				self.activityTimestamp = new Date();
 			}}, messageView);

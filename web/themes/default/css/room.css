@@ -1,3 +1,19 @@
 .message img.external{
 	width: 100%;
 }
+.reconnecting{
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	z-index: 5;
+	font-size: 15px;
+	border: solid 1px red;
+	border-radius: 50px;
+	width: 30px;
+	height: 30px;
+	text-align: center;
+	background: red;
+	color: white;
+	font-weight: bold;
+	display: none;
+}
