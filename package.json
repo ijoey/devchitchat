@@ -1,9 +1,9 @@
 {
   "name": "devchitchat",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "private": false,
   "scripts": {
-    "start": "node web/server > server1.log",
+    "start": "node web/server > server.log",
     "stop": "node web/server stop",
     "dev": "nodemon web/server.js",
     "test": "./node_modules/tap/bin/tap.js ./tests --stderr --tap"
