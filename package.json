@@ -3,9 +3,9 @@
   "version": "0.0.18",
   "private": false,
   "scripts": {
-    "start": "node web/server > server.log",
-    "stop": "node web/server stop",
-    "dev": "nodemon web/server.js",
+    "start": "node web/devchitchat > server.log",
+    "stop": "node web/devchitchat stop",
+    "dev": "nodemon web/devchitchat.js",
     "test": "./node_modules/tap/bin/tap.js ./tests --stderr --tap"
   },
   "repository": "https://github.com/ijoey/devchitchat.git",
