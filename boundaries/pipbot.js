@@ -25,7 +25,7 @@ function PipBot(config, Persistence, delegate){
 				from: Member.pipbot,
 				time: new Date()
 			});
-		
+
 			var request = message.text.replace(/^pipbot /, '');
 			var match = /google\.images\.find\([\'|\"](.+)[\'|\"]\)/ig.exec(request);
 			var limitMatch = /\.limit\((\d+)\)/ig.exec(request);

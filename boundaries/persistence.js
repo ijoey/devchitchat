@@ -22,6 +22,7 @@ var Db = {
 	, message: {
 		save: function(message, callback){
 			messageDb.insert(message, function(err, doc){
+				delete message._id;
 				if(err) console.log('save new message error:', err);
 				if(callback) callback(err, doc);
 			});
