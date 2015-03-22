@@ -138,6 +138,10 @@ form .file{
 	box-shadow: 0 0 46px 0 rgba(0,0,0,2.5);
 	background: #fff;
 }
+#header a {
+	color: #fefefe; 
+	padding-right: 6px; 
+}
 @media (min-width: 1200px){
 	.container {
 		width: 1000px;
