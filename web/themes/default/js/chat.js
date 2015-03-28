@@ -57,6 +57,7 @@
 			, sendMessage: function(){
 				this.model.from = this.model.to;
 				this.model.time = (new Date()).getTime();
+				this.model.text = this.field.value; 
 				this.delegate.messageWasSubmitted(this.model);
 				n.NotificationCenter.publish(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, this, this.model);
 				if(typingTimer !== null){
@@ -156,7 +157,7 @@
 		};
 		self.model.subscribe('times', self.update.bind(self));
 		return self;
-	}
+	};
 	n.PreviewView = function(container, model, delegate){
 		var self = {
 			container: container,
@@ -556,7 +557,7 @@
 					if(p === Permissions.GRANTED){
 						isNotificationsOn = true;
 					}
-				})
+				});
 			}
 		};
 		self.member = win.member;
@@ -591,7 +592,7 @@
 			firstChild.parentNode.appendChild(template);
 			views.push(n.PreviewView(template, message, self));
 			
-			messageView.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth})
+			messageView.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth});
 			win.addEventListener('resize', self, true);
 
 		    socket.emit('nickname', win.member.username, function(exists){
