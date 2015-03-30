@@ -11,6 +11,9 @@
 	float: left;
 	padding: 0;
 }
+.discussion .message {
+	max-width: 885px; 
+}
 .discussion time{
 	font-size: .8em;
 	font-weight: 800;
