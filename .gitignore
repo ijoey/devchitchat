@@ -21,3 +21,5 @@ config.js
 boundaries/subscribers
 boundaries/queues
 web/uploads
+incoming
+outgoing

@@ -32,7 +32,7 @@ var httpImageRoot = "/uploads/images/";
 var Moment = require('moment');
 var HttpStatus = require('../lib/httpstatus');
 var packageFile = require('../package.json');
-var busClient = require('../boundaries/inprocbus');
+var bus = require('../boundaries/bus');
 var Commands = require('../app/commands');
 var Events = require('../app/events');
 var chatServer = null;
@@ -79,12 +79,12 @@ function createFolderIfDoesntExist(folder){
 	}
 }
 
-busClient.start();
-busClient.iHandle('AddMember', {
+bus.start();
+bus.iHandle('AddMember', {
 	handle: function(command){
 		Persistence.newMemberWasSubmitted(command.body, function(err, doc){
 			if(!err){
-				busClient.publish(new Events.MemberWasCreated(command.body));
+				bus.publish(new Events.MemberWasCreated(command.body));
 			}else{
 				debug('error from AddMember handle:', err);
 			}
@@ -92,44 +92,44 @@ busClient.iHandle('AddMember', {
 	}
 });
 
-busClient.iHandle('UpdateMember', {
+bus.iHandle('UpdateMember', {
 	handle: function(command){
 		Persistence.memberWasUpdated(command.body._id, command.body, function(err, doc){
 			if(!err){
-				busClient.publish(new Events.MemberWasUpdated(command.body));
+				bus.publish(new Events.MemberWasUpdated(command.body));
 			}else{
 				debug('error from UpdateMember handle:', err);
 			}
 		});
 	}
 });
-busClient.iHandle('DeleteMember', {
+bus.iHandle('DeleteMember', {
 	handle: function(command){
 		Persistence.memberWasDeleted(command.body._id, function(err, count){
 			if(!err){
-				busClient.publish(new Events.MemberWasDeleted(command.body));
+				bus.publish(new Events.MemberWasDeleted(command.body));
 			}else{
 				debug('error from DeleteMember: ', err);
 			}
 		});
 	}
 });
-busClient.iHandle('ChangeAvatar', {
+bus.iHandle('ChangeAvatar', {
 	handle: function(command){
 		Persistence.updateAvatar(command.body.id, command.body.avatar, function(err, count){
 			if(!err){
-				busClient.publish(new Events.AvatarWasChanged(command.body));
+				bus.publish(new Events.AvatarWasChanged(command.body));
 			}else{
 				debug('error from ChangeAvatar: ', err);
 			}
 		});
 	}
 });
-busClient.iHandle('ChangeBackground', {
+bus.iHandle('ChangeBackground', {
 	handle: function(command){
 		Persistence.updateBackground(command.body.id, command.body.background, function(err, count){
 			if(!err){
-				busClient.publish(new Events.BackgroundWasChanged(command.body));
+				bus.publish(new Events.BackgroundWasChanged(command.body));
 			}else{
 				debug('error from ChangeBackground: ', err);
 			}
@@ -193,7 +193,7 @@ Passport.serializeUser(function(member, done) {
 	done(null, signature);
 });
 Passport.deserializeUser(function deserializeUser(token, done) {
-	var decodedSignature = Signer.decode(token);		
+	var decodedSignature = Signer.decode(token);
 	if(!decodedSignature) return done(null, null);
 	Persistence.member.findOne({username: decodedSignature.payload}, function(err, member) {
 		if(err){
@@ -223,7 +223,7 @@ Passport.use(new GithubStrategy(config.passport.github, function(accessToken, re
 		});
 		Persistence.newMemberWasSubmitted(member, function(err, doc){
 			if(!err){
-				busClient.publish(new Events.MemberWasCreated(doc));
+				bus.publish(new Events.MemberWasCreated(doc));
 			}else{
 				debug('error from AddMember handle:', err);
 			}
@@ -251,7 +251,7 @@ Passport.use(new TwitterStrategy(config.passport.twitter, function(accessToken, 
 		});
 		Persistence.newMemberWasSubmitted(member, function(err, doc){
 			if(!err){
-				busClient.publish(new Events.MemberWasCreated(doc));
+				bus.publish(new Events.MemberWasCreated(doc));
 			}else{
 				debug('error from AddMember handle:', err);
 			}
@@ -325,7 +325,7 @@ App.delete("/members.:format?", function(req, resp, next){
 			debug(err);
 		}
 		if(member && member._id !== null){
-			busClient.send(new Commands.DeleteMember(member));
+			bus.send(new Commands.DeleteMember(member));
 		}
 	});
 	resp.redirect('/members');
@@ -375,7 +375,7 @@ App.put("/member/:_id.:format?", function updateMemberById(req, resp, next){
 		if(!doc) return next(404);
 		doc.page = req.body.page;
 		doc.name = req.body.name;
-		busClient.send(new Commands.UpdateMember(doc));
+		bus.send(new Commands.UpdateMember(doc));
 		resp.redirect('/members');
 	});
 });
@@ -385,7 +385,7 @@ App.post("/member.:format?", function(req, resp, next){
 	member.name = req.params.name;
 	member.page = req.params.page;
 	member.active = (new Date()).getTime();
-	busClient.send(new Commands.AddMember(member));
+	bus.send(new Commands.AddMember(member));
 	resp.redirect('/members');
 });
 App.post('/member/:_id/backgrounds.:format?', function(req, resp, next){
@@ -400,7 +400,7 @@ App.post('/member/:_id/backgrounds.:format?', function(req, resp, next){
 					debug(err);
 				}
 				var newBackground = '/uploads/' + req.user.username + '/' + file.originalname;
-				busClient.send(new Commands.ChangeBackground({id: req.user._id, background: newBackground}));
+				bus.send(new Commands.ChangeBackground({id: req.user._id, background: newBackground}));
 				Persistence.member.findOne({_id: id}, function(err, doc){
 					doc.background = newBackground;
 					resp.represent({view: 'member/show', resource: new Resource(), model: new Member(doc)});
@@ -420,7 +420,7 @@ App.post('/member/:_id/avatars.:format?', function(req, resp, next){
 					debug(err);
 				}
 				var newAvatar = '/uploads/' + req.user.username + '/' + file.originalname;
-				busClient.send(new Commands.ChangeAvatar({id: req.user._id, avatar: newAvatar}));
+				bus.send(new Commands.ChangeAvatar({id: req.user._id, avatar: newAvatar}));
 				Persistence.member.findOne({_id: id}, function(err, doc){
 					doc.avatar = newAvatar;
 					resp.represent({view: 'member/show', resource: new Resource(), model: new Member(doc)});
@@ -442,7 +442,7 @@ App.get("/chat/:room.:format?", function(req, resp, next){
 				'/public/js/chat.js',
 				'/public/js/menu.js'
 			], css: ['chatbubbles', 'room']}),
-			model: doc});		
+			model: doc});
 	});
 });
 
@@ -456,4 +456,4 @@ App.get('/message.:format?', function(req, resp, next){
 });
 
 
-module.exports = {http: App, bus: busClient, persistence: Persistence, config: config};
+module.exports = {http: App, bus: bus, persistence: Persistence, config: config};

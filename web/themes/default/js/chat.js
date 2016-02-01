@@ -26,7 +26,7 @@
 		HAS_STOPPED_TYPING: 'HAS_STOPPED_TYPING',
 		CHAT_HEIGHT_HAS_CHANGED: 'CHAT_HEIGHT_HAS_CHANGED'
 	};
-	
+
 	n.MessageView = function(container, model, delegate){
 		var typingTimestamp = new Date();
 		var typingTimer = null;
@@ -57,7 +57,7 @@
 			, sendMessage: function(){
 				this.model.from = this.model.to;
 				this.model.time = (new Date()).getTime();
-				this.model.text = this.field.value; 
+				this.model.text = this.field.value;
 				this.delegate.messageWasSubmitted(this.model);
 				n.NotificationCenter.publish(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, this, this.model);
 				if(typingTimer !== null){
@@ -113,7 +113,7 @@
 				if(window.scrollY > 0){
 					if(this.container.style.position !== 'fixed'){
 						this.container.style.position = 'fixed';
-						this.container.style.top = '0';						
+						this.container.style.top = '0';
 					}
 				}else if(this.container.style.position !== defaultStyle.position){
 					this.container.style.position = defaultStyle.position;
@@ -179,15 +179,15 @@
 		container.style.top = '50px';
 		container.style.right = '20px';
 		self.model.subscribe('text', self.update.bind(self));
-		
+
 		n.NotificationCenter.subscribe(n.Events.HAS_STARTED_TYPING, {HAS_STARTED_TYPING: function(){
 			this.show();
 		}.bind(self)}, null);
-		
+
 		n.NotificationCenter.subscribe(n.Events.HAS_STOPPED_TYPING, {HAS_STOPPED_TYPING: function(){
 			this.hide();
 		}.bind(self)}, null);
-		
+
 		return self;
 	};
 	n.RosterView = function(container, model, delegate){
@@ -215,7 +215,7 @@
 				}
 			}
 		};
-		
+
 		var parent = container.querySelector('ul');
 		var template = container.querySelector('ul li:first-child');
 		var joinedTemplate = Hogan.compile(template.innerHTML);
@@ -238,7 +238,7 @@
 				return;
 			}
 			parent.removeChild(remove);
-		}		
+		}
 		self.container.style.display = 'block';
 		self.model.subscribe('push', userJoined);
 		self.model.subscribe('pop', userLeft);
@@ -350,7 +350,7 @@
 				v = hook.execute(v);
 			});
 			if(lastMessage === null){
-				elem.innerHTML = messageTemplate.render(v);				
+				elem.innerHTML = messageTemplate.render(v);
 				var first = discussion.querySelector('.discussion li:first-child');
 				if(delegate.member.username === v.from.username){
 					elem.className = 'self';
@@ -375,11 +375,11 @@
 			var last = container.querySelector(".discussion:last-child");
 			container.removeChild(last);
 		}
-		
+
 		self.model.subscribe('push', messageWasAdded);
 		self.model.subscribe('pop', messageWasRemoved);
 		return self;
-	};	
+	};
 
 	n.Message = function(obj){
 		this.text = '';
@@ -404,7 +404,7 @@
   		  return "";
 		}
 	};
-	
+
 	n.Member = function(obj){
 		this.username = null;
 		this.avatar = null;
@@ -414,7 +414,7 @@
 		  this[key] = obj[key];
 	  }
 	};
-	
+
 	var app = function(){
 		var views = [];
 		var message = new n.Observable(new n.Message({text: null, to: {name: win.member.displayName, username: win.member ? win.member.username : null, avatar: win.member ? win.member.avatar : null}}));
@@ -431,12 +431,12 @@
 		var reconnectingCounterView = document.createElement('div');
 		reconnectingCounterView.className = 'reconnecting';
 		document.body.appendChild(reconnectingCounterView);
-		
+
 		self.isActiveRightNow = true;
 		self.release = function(e){
 			views.forEach(function(v){
 				if(v.release){
-					v.release();					
+					v.release();
 				}
 			});
 			if(win.member){
@@ -495,7 +495,7 @@
 				e.target.removeEventListener(this.didShowNotification);
 			}, 5000);
 		};
-						
+
 		self.message = function(message){
 			if(isNotificationsOn &&
 				message.from.username !== win.member.username &&
@@ -512,14 +512,14 @@
 			});
 		};
 		self.reconnect = function(protocol, flag){
-			debug(0, 'reconnect->', arguments);			
+			debug(0, 'reconnect->', arguments);
 		    socket.emit('nickname', win.member.username, function(exists){
 		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.member.avatar});
 		    });
 		};
 		self.reconnecting = function(someNumber, flag){
 			reconnecting.times = someNumber;
-			debug(0, 'reconnecting->', someNumber, flag);			
+			debug(0, 'reconnecting->', someNumber, flag);
 		};
 		self.error = function(){
 			debug(0, 'error->', arguments);
@@ -588,17 +588,17 @@
 			template.innerHTML = html + '<small>Not sent yet.</small>';
 			var avatar = template.querySelector('img');
 			avatar.src = avatar.getAttribute('data-src');
-			
+
 			firstChild.parentNode.appendChild(template);
 			views.push(n.PreviewView(template, message, self));
-			
+
 			messageView.resize({h: window.document.documentElement.clientHeight, w: window.document.documentElement.clientWidth});
 			win.addEventListener('resize', self, true);
 
 		    socket.emit('nickname', win.member.username, function(exists){
 		    	roster.push({username: win.member.username, name: win.member.displayName, avatar: win.member.avatar});
 		    });
-			
+
 			socket.emit('send previous messages', 'hello?', function(list){
 				if(!list){
 					return;
@@ -611,7 +611,7 @@
 			n.NotificationCenter.subscribe(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, {THIS_USER_HAS_SENT_A_MESSAGE: function(publisher, info){
 				self.activityTimestamp = new Date();
 			}}, messageView);
-			
+
 			n.NotificationCenter.subscribe(n.Events.CHAT_HEIGHT_HAS_CHANGED, {CHAT_HEIGHT_HAS_CHANGED: function(publisher, messageHeight) {
 				if (window.scrollY <= 0)
 					return;
@@ -621,7 +621,7 @@
 		win.addEventListener('blur', self.blur.bind(self), true);
 		win.addEventListener('focus', self.focus.bind(self), true);
 		win.addEventListener('unload', self.release, true);
-			
+
 		return self;
 	}();
 })(MM, window);
