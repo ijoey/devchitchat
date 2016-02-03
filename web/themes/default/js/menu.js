@@ -27,47 +27,8 @@
 		self.container.addEventListener('click', self, true);
 		return self;
 	};
-	
-	n.CreateMenuButton = function(container, model, delegate){
-		var self = {
-			container: container,
-			model: model,
-			delegate: delegate,
-			toggle: function(){
-				if(this.isOpened){
-					this.close();
-				} else {
-					this.open();
-				}
-			},
-			close: function(){
-				this.container.style['left'] = this.defaultLeft + 'px';
-				this.delegate.shouldClose(this);
-			},
-			open: function(){
-				this.container.style['left'] = '100px';
-				this.delegate.shouldOpen(this);
-			},
-			handleEvent: function(e){
-				if(this[e.type]){
-					this[e.type](e);
-				}
-			},
-			click: function(e){
-				this.toggle();
-			}
-		};
-		self.defaultLeft = self.container.getBoundingClientRect().left;
-		self.container.addEventListener('click', self, true);
-		Object.defineProperty(self, 'isOpened', {
-			get: function(){
-				return self.container.getBoundingClientRect().left !== self.defaultLeft;
-			}
-			, enumerable: true
-		});
-		return self;
-	};
-		
+
+
 	n.CreateDocument = function(container, model, delegate){
 		var self = {
 			container: container,
@@ -77,7 +38,7 @@
 				this.container.style['marginLeft'] = '100px';
 			},
 			slideLeft: function(){
-				this.container.style['marginLeft'] = 'auto';				
+				this.container.style['marginLeft'] = 'auto';
 			},
 			menuHasOpened: function(publisher, view){
 				this.slideRight();
@@ -116,7 +77,7 @@
 				return url;
 			}
 		};
-		
+
 		self.model.subscribe('url', self.update.bind(self));
 		return self;
 	};
@@ -148,7 +109,7 @@
 				main.innerHTML = response;
 				var background = main.querySelector('#background');
 				if(background){
-					document.body.style['backgroundImage'] = 'url("' + background.value + '")';	
+					document.body.style['backgroundImage'] = 'url("' + background.value + '")';
 				}
 			},
 			shouldOpen: function(button){
@@ -162,20 +123,15 @@
 			shouldClose: function(button){
 				this.views.forEach(function(v){
 					if(v.container.id === 'menu'){
-						v.hide();						
+						v.hide();
 						n.NotificationCenter.publish('menuHasClosed', this, v);
 					}
 				}.bind(this));
 			}
 		};
-		var menuButton = document.createElement('button');
-		menuButton.id = 'menuButton';
-		menuButton.className = 'menu glyphicon glyphicon-align-justify';
-		menuButton.innerHTML = 'Menu';
-		document.body.appendChild(menuButton);
-		self.views.push(n.CreateMenuButton(menuButton, menu, self));
+
 		self.views.push(n.CreateMenu(document.getElementById('menu'), menu, self));
-		self.views.push(n.CreateDocument(document.getElementById('main'), page, self));		
+		self.views.push(n.CreateDocument(document.getElementById('main'), page, self));
 		return self;
 	})(win);
 })(MM, window);

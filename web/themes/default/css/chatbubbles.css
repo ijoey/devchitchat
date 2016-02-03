@@ -12,7 +12,7 @@
 	padding: 0;
 }
 .discussion .message {
-	max-width: 885px; 
+	max-width: 885px;
 }
 .discussion time{
 	font-size: .8em;
@@ -120,7 +120,7 @@
 	right:-56px;
 	width:26px;
 	height:20px;
-	background:white;
+	background:black;
 	border-bottom-left-radius: 10px;
 	-webkit-transform:translate(-30px, -2px);
 	clear: both;
@@ -163,7 +163,7 @@
 	left:4px;
 	width:26px;
 	height:20px;
-	background:white;
+	background:black;
 	border-bottom-right-radius: 10px;
 	-webkit-transform:translate(-30px, -2px);
 }
@@ -183,7 +183,7 @@
 .discussion .self .message{
 	position:relative;
 	padding: 5px 5px;
-	color:white; 
+	color:white;
 	background:#0B93F6;
 	border-radius:25px;
 }

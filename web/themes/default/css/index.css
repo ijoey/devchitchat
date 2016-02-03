@@ -17,7 +17,6 @@
 	top: 15em;
 	left: 0;
 	right: 0;
-	color: rgb(48,22,0);
 }
 .identify h2{
 	font-family: 'Pacifico', cursive;
@@ -35,7 +34,13 @@
 	margin-bottom: 1em;
 }
 .hero{
-	color: rgb(48,22,0);
+	color: rgb(255,255,255);
+}
+.identify{
+	color: rgb(255,255,255);
+}
+.identify .buttons button{
+	color: rgb(0,0,0);
 }
 .hero h1{
 	text-align: center;

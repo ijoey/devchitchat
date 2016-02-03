@@ -55,13 +55,12 @@ aside.nav{
 	width: 100px;
 }
 aside.nav nav{
-	width: 100px;
+	width: 20%;
 	height: 100%;
 	position: fixed;
 	z-index: 1;
 	top: 0;
-	left: -100px;
-	background: rgba(0,0,0,.5);
+	background: rgba(255,255,255,.1);
 }
 aside.nav nav a{
 	display: block;
@@ -70,26 +69,15 @@ aside.nav nav a{
 	height: 75px;
 	text-align: center;
 	line-height: 75px;
+	position: fixed;
+	top: 89%;
+	left: -40%;
 }
 aside.nav nav a:hover{
 	text-decoration: none;
 }
 aside.nav nav a span{
 	display: none;
-}
-#menuButton{
-	position: fixed;
-	top: 2px;
-	left: -15px;
-	z-index: 6;
-	width: 37px;
-	height: 37px;
-	border: 0;
-	border-radius: 50%;
-	border-top-left-radius: 0;
-	border-bottom-left-radius: 0;
-	font-size: 0;
-	line-height: 0;
 }
 
 .glyphicon-power:before {
@@ -110,11 +98,7 @@ aside.nav nav a span{
 	text-align: center;
 }
 body{
-	background-position: center;
-	background-attachment: fixed;
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-image: url(../images/wood.jpg);
+	background: black;
 }
 form .file{
 	height: 100px;
@@ -136,11 +120,10 @@ form .file{
 }
 #messagesView{
 	box-shadow: 0 0 46px 0 rgba(0,0,0,2.5);
-	background: #fff;
 }
 #header a {
-	color: #fefefe; 
-	padding-right: 6px; 
+	color: #fefefe;
+	padding-right: 6px;
 }
 @media (min-width: 1200px){
 	.container {
@@ -153,10 +136,12 @@ form .file{
 	}
 	#header{
 		display: none;
-	}	
+	}
 }
 .container{
 	padding:0;
+	width: 80%;
+	margin-right: 0;
 }
 #comment{
 	position: fixed;
@@ -168,13 +153,15 @@ form .file{
 	margin: 0;
 }
 #comment input{
-	background: rgb(255, 217, 155);
+	background: rgba(255,255,255,.1);
 	font-size: 1.5em;
 	height: 2em;
 	width: 100%;
 	border: 2px;
-	padding: 0 0 0 45px;
+	padding: 0 0 0 25px;
 	margin: 0;
+	color: white;
+	font-weight: normal;
 }
 
 .discussion{

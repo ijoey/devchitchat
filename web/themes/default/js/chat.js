@@ -35,12 +35,20 @@
 			position: container.style.position,
 			top: container.style.top
 		};
+		var interval = null;
 		function startTimer(){
 			n.NotificationCenter.publish(n.Events.HAS_STARTED_TYPING, self, null);
+			interval = setInterval(function(){
+				if(self.model.text.length === 0){
+					n.NotificationCenter.publish(n.Events.HAS_STOPPED_TYPING, self, null);
+					clearInterval(interval);
+				}
+			}, 3000);
 			return new Date();
 		}
 		function stopTimer(){
 			typingTimer = null;
+			clearInterval(interval);
 			n.NotificationCenter.publish(n.Events.HAS_STOPPED_TYPING, self, null);
 		}
 		var self = {

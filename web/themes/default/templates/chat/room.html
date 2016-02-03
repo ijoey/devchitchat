@@ -1,6 +1,7 @@
 <script>
-var member = <%- JSON.stringify(request.user)%>;
+	var member = <%- JSON.stringify(request.user)%>;
 </script>
+
 <form method="get" action="/logout" style="display: none;">
 	<fieldset>
 		<button type="submit">Sign out</button>
@@ -26,7 +27,7 @@ var member = <%- JSON.stringify(request.user)%>;
 					<time datetime="{{time}}">{{time}}</time>
 				</div>
 			</li>
-			<% 
+			<%
 				model = model ? model : [];
 				var current = model.length > 0 ? model.shift() : {from: {username: null}};
 				var i = 0;
@@ -78,7 +79,7 @@ var member = <%- JSON.stringify(request.user)%>;
 		<% if(!request.isAuthenticated()){%>
 		<a class="glyphicon glyphicon-power off" href="/login" name="signin"><span>Sign in</span></a>
 		<%}else{%>
-		<a class="glyphicon glyphicon-power on" href="/logout" title="Logout of this site"><span>Logout</span></a>					
+		<a class="glyphicon glyphicon-power on" href="/logout" title="Logout of this site"><span>Logout</span></a>
 		<%}%>
 	</nav>
 </aside>
