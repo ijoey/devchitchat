@@ -39,7 +39,7 @@ h1,h2,h3,h4,h5,h6
 	line-height: 1em;
 	letter-spacing: 1px;
 	padding: 0;
-	margin: 0 0 .5em 0;
+	margin: 0 0 46px 0;
 	font-weight: 400;
 	font-family: "Myriad Set Pro", "Helvetica Neue", "Helvetica", "Arial", "Verdana", "sans-serif";
 }
@@ -125,6 +125,15 @@ form .file{
 	color: #fefefe;
 	padding-right: 6px;
 }
+#header{
+	margin-left: 20%;
+}
+.container{
+	padding:0;
+	width: 80%;
+	margin-right: 0;
+}
+
 @media (min-width: 1200px){
 	.container {
 		width: 1000px;
@@ -137,11 +146,14 @@ form .file{
 	#header{
 		display: none;
 	}
-}
-.container{
-	padding:0;
-	width: 80%;
-	margin-right: 0;
+
+	aside.nav nav{
+		width: 0;
+		margin-left: -20%;
+	}
+	.container{
+		width: 100%;
+	}
 }
 #comment{
 	position: fixed;

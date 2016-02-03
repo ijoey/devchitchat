@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 	<head>
-	    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
 		<title><%- config.site.title %><%- resource.title ? ": " + resource.title : null %></title>
 		<meta name="description" content="<%= resource.description %>" />
@@ -22,14 +22,6 @@
 	</head>
 	<body>
 		<section id="main" class="container-fluid" role="main">
-			<header id="header" role="header" class="container">
-				<a href="https://github.com/ijoey/devchitchat/issues" title="devchitchat issues" class="fa" target="_blank">Issues</a>
-				<a href="https://github.com/ijoey/devchitchat" title="devchitchat repo" class="fa fa-github" target="_blank">Code</a>
-				<a href="/" title="devchitchat index"><%= config.site.title %></a>
-				<% if(request.isAuthenticated()){%>
-				<a href="/welcome" title="Welcome room">Welcome</a>
-				<%}%>
-			</header>
 			<%- output %>
 		</section>
 		<% resource.js.forEach(function(script){%><script type="text/javascript" src="<%= script %>"></script><%}) %>

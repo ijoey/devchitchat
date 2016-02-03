@@ -39,7 +39,8 @@
 		function startTimer(){
 			n.NotificationCenter.publish(n.Events.HAS_STARTED_TYPING, self, null);
 			interval = setInterval(function(){
-				if(self.model.text.length === 0){
+				if(self.field.value.length === 0){
+					typingTimer = null;
 					n.NotificationCenter.publish(n.Events.HAS_STOPPED_TYPING, self, null);
 					clearInterval(interval);
 				}

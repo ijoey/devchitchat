@@ -2,6 +2,12 @@
 	var member = <%- JSON.stringify(request.user)%>;
 </script>
 
+<header id="header" role="header" class="hero">
+	<a href="https://github.com/ijoey/devchitchat/issues" title="devchitchat issues" class="fa" target="_blank">Issues</a>
+	<a href="https://github.com/ijoey/devchitchat" title="devchitchat repo" class="fa fa-github" target="_blank">Code</a>
+	<a href="/" title="devchitchat index"><%= config.site.title %></a>
+	<a href="/welcome">Welcome</a>
+</header>
 <form method="get" action="/logout" style="display: none;">
 	<fieldset>
 		<button type="submit">Sign out</button>
