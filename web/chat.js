@@ -28,17 +28,25 @@ module.exports = function init(web){
 	if(!web.config){
 		throw new Error('Config is required');
 	}
+	if(!web.Passport){
+		throw new Error("Passport is required");
+	}
 	var io = require('socket.io')(web.server);
 	var cookieParserFunction = web.cookieParser();
 	var cookieSessionFunction = web.cookieSession({ keys: [web.config.cookie.key, ':blah:'], secret: web.config.cookie.secret});
 	var Persistence = web.Persistence;
 	var bus = web.bus;
+	var Passport = web.Passport;
+	var config = web.config;
 
 	function getRoomFromReferrer(socket){
-		if(!socket.handshake.headers.referer){
-			return null;
+		if(socket.request._query.room){
+			return socket.request._query.room;
 		}
-		return socket.handshake.headers.referer.split('/').pop();
+		if(socket.handshake.headers.referer){
+			return socket.handshake.headers.referer.split('/').pop();
+		}
+		return null;
 	}
 
 	bus.iHandle('SendNewChatMessage', {
@@ -79,7 +87,7 @@ module.exports = function init(web){
 	bus.iSubscribeTo('UserHasLeft', null, {
 		update: function update(event){
 			delete roster[event.body.room][event.body.id];
-			io.sockets.to(event.body.room).emit('left', event.body.member);
+			io.sockets.to(event.body.room).emit('left', event.body);
 		}
 	});
 
@@ -104,15 +112,20 @@ module.exports = function init(web){
 			next();
 		});
 	});
-
 	io.use(function(socket, next){
 		cookieParserFunction(socket.request, socket.request.res, function(){
 			cookieSessionFunction(socket.request, socket.request.res, function(){
-				var decodedSignature = signer.decode(socket.request.session.passport.user);
-				if(!decodedSignature){
-					return next(new Error("Unauthorized"));
+				var user = socket.request.session.passport ? socket.request.session.passport.user : null;
+				if(!socket.request.session.passport && socket.request._query.token === 'eyJhbGciOiJIUzI1NiJ9.MTIzNDIxMzQ4MTkyODN1amtqYXNkZm9pdXF3ZXI5.Li7UiH4zZ9vyYf5HTQz21gvM-oxZWQ7NvOm_9Li6dC8'){
+					console.log("authing hubot");
+					user = socket.request._query.token;
 				}
-				Persistence.member.findOne({username: socket.request._query.username}, function(err, doc){
+				var decodedSignature = signer.decode(user);
+				if(!decodedSignature){
+					console.log(user, "Unauthed");
+					return next(401);
+				}
+				Persistence.member.findOne({token: decodedSignature.payload}, function(err, doc){
 					if(doc){
 						var room = getRoomFromReferrer(socket);
 						if(!roster[room]){
@@ -138,6 +151,7 @@ module.exports = function init(web){
 		this.socket.on('nickname', this.onNickname.bind(this));
 		this.socket.on('left', this.onLeft.bind(this));
 		this.socket.on('disconnect', this.onDisconnect.bind(this));
+		this.socket.on('join', this.onJoin.bind(this));
 	}
 	Client.prototype = {
 		onError: function onError(err){
@@ -167,9 +181,13 @@ module.exports = function init(web){
 			this.delegate.send(new Commands.SendNicknames({room: this.room, nicknames: this.roster}));
 			return callback(true);
 		},
-		onLeft: function onLeft(user){
-			debug('disconnected', user);
-			this.delegate.publish(new Events.UserHasLeft({room: this.room, member: user, id: this.socket.id}));
+		onJoin: function onJoin(room, callback){
+			this.room = room;
+			callback(true);
+		},
+		onLeft: function onLeft(message){
+			debug('disconnected', message);
+			this.delegate.publish(new Events.UserHasLeft({room: this.room, member: message.member, id: this.socket.id}));
 		},
 		onDisconnect: function onDisconnect(){
 			debug('disconnecting', arguments);

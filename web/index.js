@@ -10,6 +10,7 @@ var Chilla = require('chilla').Chilla({
 	themeRoot: rootPath + ['', 'themes', 'default'].join(Path.sep),
 	appPath: rootPath
 });
+var uuid = require('node-uuid');
 var BodyParser = require('body-parser');
 var StaticServer = require('serve-static');
 var Compression = require('compression');
@@ -187,7 +188,7 @@ App.use(Passport.session());
 Passport.serializeUser(function(member, done) {
 	var signature = Signer.sign({
 		header: {alg: 'HS256'}
-		, payload: member.username
+		, payload: member.token
 		, secret: config.secret
 	});
 	done(null, signature);
@@ -195,7 +196,7 @@ Passport.serializeUser(function(member, done) {
 Passport.deserializeUser(function deserializeUser(token, done) {
 	var decodedSignature = Signer.decode(token);
 	if(!decodedSignature) return done(null, null);
-	Persistence.member.findOne({username: decodedSignature.payload}, function(err, member) {
+	Persistence.member.findOne({token: decodedSignature.payload}, function(err, member) {
 		if(err){
 			debug(err);
 		}
@@ -215,7 +216,7 @@ Passport.use(new GithubStrategy(config.passport.github, function(accessToken, re
 			id: profile.id,
 			provider: profile.provider,
 			name: profile.displayName,
-			token: profile.id,
+			token: uuid.v4(),
 			username: profile.username,
 			profileUrl: profile.profileUrl,
 			emails: profile.emails,
@@ -243,7 +244,7 @@ Passport.use(new TwitterStrategy(config.passport.twitter, function(accessToken, 
 			id: profile.id,
 			provider: profile.provider,
 			name: profile.displayName,
-			token: profile.id,
+			token: uuid.v4(),
 			username: profile.username,
 			profileUrl: profile.profileUrl,
 			emails: profile.emails,
@@ -456,4 +457,4 @@ App.get('/message.:format?', function(req, resp, next){
 });
 
 
-module.exports = {http: App, bus: bus, persistence: Persistence, config: config};
+module.exports = {http: App, bus: bus, persistence: Persistence, config: config, Passport: Passport};

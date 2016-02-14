@@ -30,5 +30,6 @@ var chatServer = require('./chat')({
 	cookieParser: cookieParser,
 	cookieSession: cookieSession,
 	bus: web.bus,
-	Persistence: web.persistence
+	Persistence: web.persistence,
+	Passport: web.Passport
 });

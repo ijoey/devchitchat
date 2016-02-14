@@ -341,12 +341,22 @@
 			message.text = message.text.replace(/^data\:image(.*)/, '<img class="external" src="$&" />');
 			return message;
 		}
+		function hookForNewLines(message){
+			message.text = message.text.replace(/\n/ig, '<br />');
+			return message;
+		}
+		function hookForShowingXml(message){
+			message.text = message.text.replace(/</ig, '&lt;').replace(/>/ig, '/&gt;');
+			return message;
+		}
 		hooks.push({execute: hookForDataImage});
 		hooks.push({execute: hookForLinks});
 		hooks.push({execute: hookForImages});
 		hooks.push({execute: hookGsearchResultClass});
 		hooks.push({execute: hookGithubResponse});
 		hooks.push({execute: hookListOfUsers});
+		hooks.push({execute: hookForShowingXml});
+		hooks.push({execute: hookForNewLines});
 		function messageWasAdded(key, old, v){
 			if(!v) return;
 			if(!v.from) return;
@@ -449,7 +459,8 @@
 				}
 			});
 			if(win.member){
-				socket.emit('left', win.member);
+				var room = window.location.split('/')[3];
+				socket.emit('left', {member: win.member, room: ''});
 				socket.removeAllListeners('connect');
 				socket.removeAllListeners('nicknames');
 				socket.removeAllListeners('message');
@@ -533,12 +544,12 @@
 		self.error = function(){
 			debug(0, 'error->', arguments);
 		};
-		self.left = function(member){
+		self.left = function(msg){
 			views.forEach(function(v){
-				if(v.left) v.left(member);
+				if(v.left) v.left(msg.member);
 			});
 			if(member === win.member.username){
-				console.log("you've been disconnected from the IRC server");
+				console.log("you've been disconnected from the server");
 			}
 		};
 		self.handleEvent = function(e){
@@ -630,7 +641,8 @@
 		win.addEventListener('blur', self.blur.bind(self), true);
 		win.addEventListener('focus', self.focus.bind(self), true);
 		win.addEventListener('unload', self.release, true);
-
+		self.model = {messages: messages};
 		return self;
 	}();
+	win.app = app;
 })(MM, window);
