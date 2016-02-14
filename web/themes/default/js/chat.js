@@ -641,7 +641,10 @@
 		win.addEventListener('blur', self.blur.bind(self), true);
 		win.addEventListener('focus', self.focus.bind(self), true);
 		win.addEventListener('unload', self.release, true);
-		self.model = {messages: messages};
+		self.model = {
+			messages: messages
+		};
+		self.getBase64Image = getBase64Image;
 		return self;
 	}();
 	win.app = app;
