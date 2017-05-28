@@ -523,7 +523,7 @@
 		self.didShowNotification = function(e){
 			setTimeout(function closeIt(){
 				e.target.close();
-				e.target.removeEventListener(this.didShowNotification);
+				e.target.removeEventListener('show', this.didShowNotification);
 			}, 5000);
 		};
 
