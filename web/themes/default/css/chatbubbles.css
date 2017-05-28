@@ -94,6 +94,7 @@
 .discussion .message .text{
 	padding: 5px;
 	min-height: 20px;
+	cursor: pointer;
 }
 .discussion .text a{
 	color: black;

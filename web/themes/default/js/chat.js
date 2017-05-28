@@ -67,6 +67,9 @@
 				this.model.from = this.model.to;
 				this.model.time = (new Date()).getTime();
 				this.model.text = this.field.value;
+				if(/^\[.*\]/.test(this.model.text)){
+					this.model.text = this.model.text.replace(/] /, "]\n");
+				}
 				this.delegate.messageWasSubmitted(this.model);
 				n.NotificationCenter.publish(n.Events.THIS_USER_HAS_SENT_A_MESSAGE, this, this.model);
 				if(typingTimer !== null){
@@ -128,6 +131,11 @@
 					this.container.style.position = defaultStyle.position;
 					this.container.style.top = defaultStyle.top;
 				}
+			},
+			messageWasDoubleClicked: function messageWasDoubleClicked(message){
+				message.text = message.text.replace('<br>', ' ');
+				this.field.value = '[' + message.text + ' from ' + message.from.displayName + '] ';
+				this.field.focus();
 			}
 		};
 		window.addEventListener('scroll', self.scrolling.bind(self), true);
@@ -363,7 +371,10 @@
 			var originalHeight = discussion.scrollHeight;
 			var lastMessage = discussion.querySelector("[data-from='" + v.from._id + "']:first-child");
 			var elem = template.cloneNode(true);
-			elem.setAttribute('data-from', v.from._id);
+			elem.setAttribute('data-from', v.from._id);;
+			elem.addEventListener('dblclick', function(e){
+				delegate.messageWasDoubleClicked(e);
+			}, true);
 			elem.style.display = 'block';
 			hooks.forEach(function(hook){
 				v = hook.execute(v);
@@ -459,7 +470,7 @@
 				}
 			});
 			if(win.member){
-				var room = window.location.split('/')[3];
+				var room = window.location.href.split('/')[3];
 				socket.emit('left', {member: win.member, room: ''});
 				socket.removeAllListeners('connect');
 				socket.removeAllListeners('nicknames');
@@ -565,6 +576,18 @@
 		};
 		self.focus = function focus(e){
 			this.isActiveRightNow = true;
+		};
+		self.messageWasDoubleClicked = function messageWasDoubleClicked(e){
+			views.forEach(function(v){
+				if(v.messageWasDoubleClicked){
+					var fromId = e.target.parentNode.parentNode.getAttribute("data-from");
+					var from = roster.find(function(i, u){
+						return fromId === u._id
+					});
+					v.messageWasDoubleClicked({text: e.target.innerHTML, from: from});
+				}
+			});
+
 		};
 		self.requestNotificationPermission = function(){
 			if(!('Notification' in window)){
