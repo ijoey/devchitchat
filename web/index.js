@@ -10,7 +10,7 @@ var Chilla = require('chilla').Chilla({
 	themeRoot: rootPath + ['', 'themes', 'default'].join(Path.sep),
 	appPath: rootPath
 });
-var uuid = require('node-uuid');
+var uuid = require('uuid');
 var BodyParser = require('body-parser');
 var StaticServer = require('serve-static');
 var Compression = require('compression');
@@ -306,6 +306,11 @@ App.get('/welcome.:format?', function(req, resp, next){
 			'/public/js/hogan-2.0.0.min.js',
 			'/public/js/uri.js',
 			'/public/js/mvc.js',
+			'/public/js/messageview.js',
+			'/public/js/previewview.js',
+			'/public/js/rosterview.js',
+			'/public/js/reconnectingcounterview.js',
+			'/public/js/discussionview.js',
 			'/public/js/chat.js',
 			'/public/js/menu.js'
 		], css: ['chatbubbles', 'room']}),
@@ -440,6 +445,11 @@ App.get("/chat/:room.:format?", function(req, resp, next){
 				'/public/js/hogan-2.0.0.min.js',
 				'/public/js/uri.js',
 				'/public/js/mvc.js',
+				'/public/js/reconnectingcounterview.js',
+				'/public/js/messageview.js',
+				'/public/js/previewview.js',
+				'/public/js/rosterview.js',
+				'/public/js/discussionview.js',
 				'/public/js/chat.js',
 				'/public/js/menu.js'
 			], css: ['chatbubbles', 'room']}),

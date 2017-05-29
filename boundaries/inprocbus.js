@@ -8,7 +8,7 @@ var events = new PersistentQueue(queuePath, new Queue({name: 'Events'}));
 var handlers = {};
 var subscribers = {};
 var debug = require('debug')('inprocbus');
-var Uuid = require('node-uuid');
+var Uuid = require('uuid');
 
 function loadFromDisk(){
 	var files = fs.readdirSync(queuePath);

@@ -1,4 +1,4 @@
-var Uuid = require('node-uuid');
+var Uuid = require('uuid');
 function Message(body, header){
 	this.header = header;
 	this.header.queueName = header.queueName || null;

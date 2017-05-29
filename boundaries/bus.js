@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter;
 var emitter = new EventEmitter();
-var Uuid = require('node-uuid');
+var Uuid = require('uuid');
 var handlers = {};
 module.exports = {
 	send: function(command){

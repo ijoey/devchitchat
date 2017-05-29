@@ -29,11 +29,11 @@
     "moment": "^2.9.0",
     "multer": "^0.1.7",
     "nedb": "^1.1.1",
-    "node-uuid": "^1.4.2",
     "passport": "*",
     "passport-github": "*",
     "passport-twitter": "*",
     "serve-static": "*",
-    "socket.io": "*"
+    "socket.io": "*",
+    "uuid": "^3.0.1"
   }
 }
