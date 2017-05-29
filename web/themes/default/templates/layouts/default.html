@@ -19,6 +19,9 @@
 		<link rel="stylesheet" type="text/css" href="/public/bootstrap/css/bootstrap.min.css" />
 		<link rel="stylesheet" type="text/css" href="/public/css/default.css" />
 		<% resource.css.forEach(function(style){%><link rel="stylesheet" type="text/css" href="/public/css/<%- style %>.css" /><%}) %>
+		<script>
+			var global = window;
+		</script>
 	</head>
 	<body>
 		<section id="main" class="container-fluid" role="main">

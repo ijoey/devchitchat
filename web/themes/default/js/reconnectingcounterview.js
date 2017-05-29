@@ -22,4 +22,4 @@
 		self.model.subscribe('times', self.update.bind(self));
 		return self;
 	};
-})(MM, window);
+})(module.exports, global);

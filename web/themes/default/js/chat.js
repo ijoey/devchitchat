@@ -287,4 +287,4 @@
 		return self;
 	}();
 	win.app = app;
-})(MM, window);
+})(module.exports, global);

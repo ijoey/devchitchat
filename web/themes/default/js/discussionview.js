@@ -147,4 +147,4 @@
 		self.model.subscribe('pop', messageWasRemoved);
 		return self;
 	};
-})(MM, window)
+})(module.exports, global)

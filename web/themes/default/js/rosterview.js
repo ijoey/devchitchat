@@ -54,4 +54,4 @@
 		self.model.subscribe('remove', userLeft);
 		return self;
 	};
-})(MM, window)
+})(module.exports, global)

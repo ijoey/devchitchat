@@ -124,4 +124,4 @@
         self.field.focus();
         return self;
     };
-})(MM, window)
+})(module.exports, global)

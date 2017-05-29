@@ -1,4 +1,4 @@
-if(!MM) var MM = {};
+if(!module) var module = {exports: {}};
 (function(namespace){
 	namespace.Device = (function Device(){
 		this.CANTOUCH = ("createTouch" in document);
@@ -278,4 +278,4 @@ if(!MM) var MM = {};
 		}
 		return proto;
 	};
-})(MM);
+})(module.exports);

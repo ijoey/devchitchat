@@ -89,7 +89,7 @@
 			views: [],
 			wasSelected: function(link){
 				n.NotificationCenter.publish('pageWasSelected', this, page);
-				return window.location = link.href;
+				window.location = link.href;
 
 				if(link.href.indexOf('logout') > -1){
 					return window.location = link.href;
@@ -134,4 +134,4 @@
 		self.views.push(n.CreateDocument(document.getElementById('main'), page, self));
 		return self;
 	})(win);
-})(MM, window);
+})(module.exports, global);

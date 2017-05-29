@@ -112,4 +112,4 @@
 		//win.addEventListener('resize', this, true);
 		//self.views[0].controller.resize({h: window.document.documentElement.clientHeight});
 	})(win);
-})(MM, window);
+})(module.exports, global);

@@ -67,4 +67,4 @@
 		memberGetter.fetch();		
 		return self;
 	})(win);
-})(MM, window);
+})(module.exports, global);

@@ -71,4 +71,4 @@
 	var model = new n.Observable.List();
 	model.contents = null;
 	model.subscribe('push', imageListView.update.bind(imageListView));
-})(MM, window);
+})(module.exports, global);

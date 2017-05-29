@@ -31,4 +31,4 @@
 
 		return self;
 	};
-})(MM, window);
+})(module.exports, global);
