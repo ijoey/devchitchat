@@ -20,6 +20,7 @@
 		<link rel="stylesheet" type="text/css" href="/public/css/default.css" />
 		<% resource.css.forEach(function(style){%><link rel="stylesheet" type="text/css" href="/public/css/<%- style %>.css" /><%}) %>
 		<script>
+			if(!module) var module = {exports: {}};
 			var global = window;
 		</script>
 	</head>

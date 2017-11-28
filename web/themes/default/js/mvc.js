@@ -1,7 +1,6 @@
-if(!module) var module = {exports: {}};
-(function(namespace){
+(function(namespace, win){
 	namespace.Device = (function Device(){
-		this.CANTOUCH = ("createTouch" in document);
+		this.CANTOUCH = ("createTouch" in win.document);
 		this.MOUSEDOWN = this.CANTOUCH ? "touchstart" : "mousedown";
 		this.MOUSEMOVE = this.CANTOUCH ? "touchmove" : "mousemove";
 		this.MOUSEUP = this.CANTOUCH ? "touchend" : "mouseup";
@@ -278,4 +277,4 @@ if(!module) var module = {exports: {}};
 		}
 		return proto;
 	};
-})(module.exports);
+})(module.exports, global);

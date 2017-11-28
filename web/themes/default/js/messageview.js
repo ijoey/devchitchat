@@ -2,7 +2,6 @@
     n.MessageView = function(container, model, delegate){
         var typingTimestamp = new Date();
         var typingTimer = null;
-        var editableComment = document.getElementById('editableComment');
         var defaultStyle = {
             position: container.style.position,
             top: container.style.top
@@ -94,7 +93,7 @@
                 this.form.removeEventListener('submit', this);
             },
             scrolling: function scrolling(e){
-                if(window.scrollY > 0){
+                if(win.scrollY > 0){
                     if(this.container.style.position !== 'fixed'){
                         this.container.style.position = 'fixed';
                         this.container.style.top = '0';
@@ -110,7 +109,7 @@
                 this.field.focus();
             }
         };
-        window.addEventListener('scroll', self.scrolling.bind(self), true);
+        win.addEventListener('scroll', self.scrolling.bind(self), true);
         self.button = self.form.querySelector('button');
         Object.defineProperty(self, 'top', {
             get: function(){return parseInt(self.field.style.top.replace('px', ''), 10);}
